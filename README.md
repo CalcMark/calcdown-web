@@ -34,6 +34,7 @@ go build -o calcmark ./impl/cmd/calcmark
 ```
 
 This creates two files in `static/` (both are git-ignored):
+
 - `calcmark.wasm` - The compiled WASM binary (~3MB)
 - `wasm_exec.js` - Go's WASM runtime loader
 
@@ -119,6 +120,7 @@ CalcMarkBlock.svelte (groups lines into blocks)
 **Error**: `ENOENT: no such file or directory, open 'static/calcmark.wasm'`
 
 **Solution**:
+
 ```bash
 # From go-calcmark project root
 go build -o calcmark ./impl/cmd/calcmark
@@ -132,6 +134,7 @@ This builds and copies both `calcmark.wasm` and `wasm_exec.js` to the correct lo
 **Error**: `CalcMark API not initialized`
 
 **Solution**:
+
 - Ensure Go WASM was built with correct Go version: `go version`
 - The `calcmark wasm` command automatically uses the correct `wasm_exec.js` for your Go version
 - Rebuild if needed
@@ -139,6 +142,7 @@ This builds and copies both `calcmark.wasm` and `wasm_exec.js` to the correct lo
 ### API endpoint returns 500
 
 Check server logs for errors. Common issues:
+
 - WASM files missing or corrupted
 - Go runtime version mismatch
 - Invalid input format
@@ -154,6 +158,7 @@ Check server logs for errors. Common issues:
 ## Browser Support
 
 Works in all modern browsers:
+
 - Chrome 90+
 - Firefox 88+
 - Safari 14+

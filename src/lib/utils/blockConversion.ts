@@ -133,7 +133,8 @@ export function splitBlockAtPosition(
 			type: 'markdown', // New blocks default to markdown
 			content: contentAfter,
 			lineStart: block.lineStart + contentBefore.split('\n').length,
-			lineEnd: block.lineStart + contentBefore.split('\n').length + contentAfter.split('\n').length - 1
+			lineEnd:
+				block.lineStart + contentBefore.split('\n').length + contentAfter.split('\n').length - 1
 		}
 	};
 }

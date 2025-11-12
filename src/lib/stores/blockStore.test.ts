@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createEditorStore } from './blockStore.svelte';
-import type { Block, LineClassification, Token, Diagnostic, EvaluationResult } from './blockStore.svelte';
+import type {
+	Block,
+	LineClassification,
+	Token,
+	Diagnostic,
+	EvaluationResult
+} from './blockStore.svelte';
 
 describe('EditorStore', () => {
 	let store: ReturnType<typeof createEditorStore>;

@@ -10,8 +10,8 @@ The editor relies on the WASM created by the CalcMark implementation at https://
 ## Development Guidelines
 
 - **Building WASM files**: The CalcMark WASM files need to be generated using the calcmark CLI tool.
-
   1. Install the calcmark CLI tool:
+
      ```bash
      go install github.com/CalcMark/go-calcmark/impl/cmd/calcmark@main
      ```
@@ -28,6 +28,7 @@ The editor relies on the WASM created by the CalcMark implementation at https://
        ```
 
   4. The WASM files (`calcmark.wasm` and `wasm_exec.js`) should be placed in the `static/` directory of this project.
+
 - Create tests that validate the desired behavior, or that test a hypothesis.
 - Avoid any pre-Svelte 5 code, especially around runes or other deprecated features.
   Do not spin up one-off scripts: use vitest or Playwright, or both.

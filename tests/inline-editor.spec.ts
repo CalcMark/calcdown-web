@@ -6,9 +6,11 @@ test.describe('Inline CalcMark Editor', () => {
 		// Wait for initial processing to complete
 		await page.waitForSelector('.editor-content', { state: 'visible' });
 		// Wait for processing indicator to disappear (initial evaluation)
-		await page.waitForSelector('.processing-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {
-			// It's okay if it's already hidden
-		});
+		await page
+			.waitForSelector('.processing-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {
+				// It's okay if it's already hidden
+			});
 	});
 
 	test('should render editor with initial content', async ({ page }) => {
@@ -134,14 +136,18 @@ test.describe('Inline CalcMark Editor', () => {
 		await textarea.press('Tab');
 
 		// Wait for processing indicator
-		await page.waitForSelector('.processing-indicator', { state: 'visible', timeout: 1000 }).catch(() => {
-			// Might be too fast to catch
-		});
+		await page
+			.waitForSelector('.processing-indicator', { state: 'visible', timeout: 1000 })
+			.catch(() => {
+				// Might be too fast to catch
+			});
 
 		// Wait for processing to complete
-		await page.waitForSelector('.processing-indicator', { state: 'hidden', timeout: 3000 }).catch(() => {
-			// Already hidden
-		});
+		await page
+			.waitForSelector('.processing-indicator', { state: 'hidden', timeout: 3000 })
+			.catch(() => {
+				// Already hidden
+			});
 
 		// Block should still exist and contain the value
 		const content = await textarea.inputValue();

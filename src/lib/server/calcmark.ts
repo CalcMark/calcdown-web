@@ -17,7 +17,10 @@ import wasmUrl from '../wasm/calcmark.wasm?url';
 interface CalcMarkAPI {
 	tokenize(source: string): { tokens: string; error: string | null };
 	evaluate(source: string, useGlobalContext: boolean): { results: string; error: string | null };
-	evaluateDocument(source: string, useGlobalContext: boolean): { results: string; error: string | null };
+	evaluateDocument(
+		source: string,
+		useGlobalContext: boolean
+	): { results: string; error: string | null };
 	validate(source: string): { diagnostics: string; error: string | null };
 	classifyLines(lines: string[]): { classifications: string; error: string | null };
 	resetContext(): void;
@@ -143,9 +146,7 @@ export async function processCalcMark(input: string) {
 
 	// Step 1: Classify lines
 	const classifyResult = api.classifyLines(lines);
-	const classifications = classifyResult.error
-		? []
-		: JSON.parse(classifyResult.classifications);
+	const classifications = classifyResult.error ? [] : JSON.parse(classifyResult.classifications);
 
 	// Step 2: Tokenize calculation lines only
 	// Returns tokens grouped by line number (1-indexed)
@@ -177,23 +178,38 @@ export async function processCalcMark(input: string) {
 	const resultsByLine = evaluationResults; // Already has OriginalLine from evaluateDocument
 	const variableContext: Record<string, any> = {}; // varName -> {Value, Symbol, SourceFormat}
 
-	console.log('[processCalcMark] Building variableContext from', evaluationResults.length, 'results');
+	console.log(
+		'[processCalcMark] Building variableContext from',
+		evaluationResults.length,
+		'results'
+	);
 	for (const result of evaluationResults) {
 		const lineNumber = result.OriginalLine;
 		const tokens = tokensByLine[lineNumber] || [];
 		const assignToken = tokens.find((t: any) => t.type === 'ASSIGN');
 		if (assignToken) {
 			// First token before ASSIGN is the variable name
-			const varToken = tokens.find((t: any) => t.type === 'IDENTIFIER' && t.start < assignToken.start);
+			const varToken = tokens.find(
+				(t: any) => t.type === 'IDENTIFIER' && t.start < assignToken.start
+			);
 			if (varToken) {
 				console.log('Adding to variableContext:', varToken.value, '=', result);
 				variableContext[varToken.value] = result;
 			} else {
-				console.log('No IDENTIFIER token before ASSIGN on line', lineNumber, 'tokens:', tokens.map((t: any) => `${t.type}:${t.value}`));
+				console.log(
+					'No IDENTIFIER token before ASSIGN on line',
+					lineNumber,
+					'tokens:',
+					tokens.map((t: any) => `${t.type}:${t.value}`)
+				);
 			}
 		}
 	}
-	console.log('[processCalcMark] Final variableContext has', Object.keys(variableContext).length, 'variables');
+	console.log(
+		'[processCalcMark] Final variableContext has',
+		Object.keys(variableContext).length,
+		'variables'
+	);
 
 	// Step 4: Validate
 	const validateResult = api.validate(input);
@@ -206,6 +222,11 @@ export async function processCalcMark(input: string) {
 		diagnostics,
 		variableContext
 	};
-	console.log('[processCalcMark] Returning variableContext:', JSON.stringify(variableContext), 'Keys:', Object.keys(variableContext));
+	console.log(
+		'[processCalcMark] Returning variableContext:',
+		JSON.stringify(variableContext),
+		'Keys:',
+		Object.keys(variableContext)
+	);
 	return response;
 }

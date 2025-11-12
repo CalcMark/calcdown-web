@@ -2,7 +2,6 @@
 	import { createEditorStore } from '$lib/stores/blockStore.svelte';
 	import {
 		documentToBlocks,
-		blocksToDocument,
 		generateBlockId,
 		recalculateLineNumbers
 	} from '$lib/utils/blockConversion';
@@ -206,12 +205,12 @@ exact_match = 工资 == $5_000`;
 		store.setActiveBlock(newBlock.id);
 	}
 
-	function handleBlockTab(blockId) {
+	function handleBlockTab() {
 		// Trigger evaluation immediately
 		processDocument();
 	}
 
-	function handleBlockBackspaceAtStart(blockId) {
+	function handleBlockBackspaceAtStart(blockId: string) {
 		const blockIndex = store.blocks.findIndex((b) => b.id === blockId);
 		if (blockIndex > 0) {
 			const previousBlockId = store.blocks[blockIndex - 1].id;
@@ -231,7 +230,7 @@ exact_match = 工资 == $5_000`;
 		}
 	}
 
-	function handleBlockBlur(blockId) {
+	function handleBlockBlur() {
 		// Keep block active for now (we can change this behavior later)
 		// store.setActiveBlock(null);
 	}
@@ -270,7 +269,10 @@ exact_match = 工资 == $5_000`;
 		max-width: 900px;
 		margin: 0 auto;
 		padding: 20px;
-		font-family: system-ui, -apple-system, sans-serif;
+		font-family:
+			system-ui,
+			-apple-system,
+			sans-serif;
 		min-height: 100vh;
 		background: #f5f5f5;
 	}

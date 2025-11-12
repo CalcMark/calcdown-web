@@ -72,9 +72,7 @@ function downloadFile(url, dest) {
 				}
 
 				if (response.statusCode !== 200) {
-					reject(
-						new Error(`Failed to download: ${response.statusCode} ${response.statusMessage}`)
-					);
+					reject(new Error(`Failed to download: ${response.statusCode} ${response.statusMessage}`));
 					return;
 				}
 

@@ -6,11 +6,20 @@
 		block,
 		isActive = false,
 		variableContext = {},
-		onContentChange = (content) => {},
+		onContentChange = (_: string) => {},
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},
 		onBlur = () => {}
+	}: {
+		block: Block;
+		isActive: boolean;
+		variableContext: Record<string, unknown>;
+		onContentChange: (content: string) => void;
+		onEnter: () => void;
+		onTab: () => void;
+		onBackspaceAtStart: () => void;
+		onBlur: () => void;
 	} = $props();
 
 	let textareaElement = $state(null);
@@ -20,9 +29,7 @@
 	// (In MVP, calculation blocks are single-line)
 	const lineNumber = $derived(block.lineStart);
 	const tokens = $derived((block.tokens && block.tokens[lineNumber]) || []);
-	const diagnostics = $derived(
-		(block.diagnostics && block.diagnostics[lineNumber]) || []
-	);
+	const diagnostics = $derived((block.diagnostics && block.diagnostics[lineNumber]) || []);
 	const evaluationResult = $derived(
 		block.evaluationResults?.find((r) => r.OriginalLine === lineNumber) || null
 	);
@@ -34,7 +41,7 @@
 
 	function handleKeyDown(event: KeyboardEvent) {
 		const textarea = event.target as HTMLTextAreaElement;
-		const { selectionStart, selectionEnd, value } = textarea;
+		const { selectionStart, selectionEnd } = textarea;
 
 		// TAB: Trigger evaluation
 		if (event.key === 'Tab') {

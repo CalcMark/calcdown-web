@@ -5,11 +5,19 @@
 	let {
 		block,
 		isActive = false,
-		onContentChange = (content) => {},
+		onContentChange = (_: string) => {},
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},
 		onBlur = () => {}
+	}: {
+		block: Block;
+		isActive: boolean;
+		onContentChange: (content: string) => void;
+		onEnter: () => void;
+		onTab: () => void;
+		onBackspaceAtStart: () => void;
+		onBlur: () => void;
 	} = $props();
 
 	let textareaElement = $state(null);
@@ -33,7 +41,7 @@
 
 	function handleKeyDown(event: KeyboardEvent) {
 		const textarea = event.target as HTMLTextAreaElement;
-		const { selectionStart, selectionEnd, value } = textarea;
+		const { selectionStart, selectionEnd } = textarea;
 
 		// TAB: Trigger evaluation
 		if (event.key === 'Tab') {

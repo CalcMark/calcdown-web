@@ -48,10 +48,6 @@ test.describe('Syntax Highlighting', () => {
 	});
 
 	test('should apply token-identifier class to variables', async ({ page }) => {
-		// Find a calculation block with an identifier
-		// From the sample document, we know "discount = 20%" exists
-		const blocks = page.locator('.editable-block.calculation');
-
 		// Click on a different block to ensure we're viewing in preview mode
 		const lastBlock = page.locator('.editable-block').last();
 		await lastBlock.click();
@@ -245,7 +241,7 @@ test.describe('Syntax Highlighting', () => {
 		// Hover over the identifier in the second block
 		const identifierToken = secondBlock.locator('.token-identifier').filter({ hasText: 'my_var' });
 
-		if (await identifierToken.count() > 0) {
+		if ((await identifierToken.count()) > 0) {
 			await identifierToken.hover();
 
 			// Wait a bit for tooltip to appear

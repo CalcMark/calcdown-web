@@ -62,8 +62,8 @@ export interface EditorState {
 /**
  * Creates a new editor store
  */
-export function createEditorStore(initialContent: string = '') {
-	let state = $state<EditorState>({
+export function createEditorStore() {
+	const state = $state<EditorState>({
 		blocks: [],
 		activeBlockId: null,
 		variableContext: {},

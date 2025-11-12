@@ -8,11 +8,21 @@
 		isActive = false,
 		variableContext = {},
 		onActivate = () => {},
-		onContentChange = (content) => {},
+		onContentChange = (_: string) => {},
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},
 		onBlur = () => {}
+	}: {
+		block: Block;
+		isActive: boolean;
+		variableContext: Record<string, unknown>;
+		onActivate: () => void;
+		onContentChange: (content: string) => void;
+		onEnter: () => void;
+		onTab: () => void;
+		onBackspaceAtStart: () => void;
+		onBlur: () => void;
 	} = $props();
 
 	let editorElement = $state(null);
