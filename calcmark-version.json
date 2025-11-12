@@ -1,0 +1,4 @@
+{
+  "version": "v0.1.23",
+  "description": "CalcMark WASM version - update this to change which WASM binaries are downloaded"
+}
