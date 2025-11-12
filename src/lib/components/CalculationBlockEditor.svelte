@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import CalculationLine from './CalculationLine.svelte';
 	import type { Block } from '$lib/stores/blockStore.svelte';
 

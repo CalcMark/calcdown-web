@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
 	import CalculationBlockEditor from './CalculationBlockEditor.svelte';
 	import MarkdownBlockEditor from './MarkdownBlockEditor.svelte';
 	import type { Block } from '$lib/stores/blockStore.svelte';
 
 	let {
-		block = $bindable(),
+		block,
 		isActive = false,
 		variableContext = {},
 		onActivate = () => {},

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { createEditorStore } from '$lib/stores/blockStore.svelte';
 	import {
 		documentToBlocks,
@@ -96,12 +96,16 @@ exact_match = 工资 == $5_000`;
 	let debounceTimer = $state(null);
 	const DEBOUNCE_MS = 150;
 
-	// Initialize blocks from sample document
+	// Initialize blocks from sample document (run once)
+	let initialized = $state(false);
 	$effect(() => {
-		const initialBlocks = documentToBlocks(SAMPLE_DOCUMENT);
-		store.setBlocks(initialBlocks);
-		// Trigger initial evaluation
-		processDocument();
+		if (!initialized) {
+			initialized = true;
+			const initialBlocks = documentToBlocks(SAMPLE_DOCUMENT);
+			store.setBlocks(initialBlocks);
+			// Trigger initial evaluation
+			processDocument();
+		}
 	});
 
 	// Process document through server API
@@ -247,7 +251,7 @@ exact_match = 工资 == $5_000`;
 	<div class="editor-content">
 		{#each store.blocks as block (block.id)}
 			<EditableBlock
-				bind:block
+				{block}
 				isActive={store.activeBlockId === block.id}
 				variableContext={store.variableContext}
 				onActivate={() => handleBlockActivate(block.id)}
