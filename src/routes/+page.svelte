@@ -1,9 +1,9 @@
 <script>
-	import CalcMarkEditor from '$lib/components/CalcMarkEditor.svelte';
+	import InlineCalcMarkEditor from '$lib/components/InlineCalcMarkEditor.svelte';
 </script>
 
 <div class="app">
-	<CalcMarkEditor />
+	<InlineCalcMarkEditor />
 </div>
 
 <style>
