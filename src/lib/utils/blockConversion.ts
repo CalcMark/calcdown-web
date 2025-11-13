@@ -32,6 +32,29 @@ export function generateBlockId(content: string = '', position: number = 0): str
 }
 
 /**
+ * Tries to reuse a block ID from previous blocks if possible
+ * Falls back to generating a new ID
+ */
+function getOrGenerateBlockId(
+	position: number,
+	type: 'markdown' | 'calculation',
+	content: string,
+	previousBlocks: Block[]
+): string {
+	// Check if there's a previous block at the same position with the same type
+	const previousBlock = previousBlocks[position];
+
+	if (previousBlock && previousBlock.type === type) {
+		// Reuse the ID from the previous block
+		// This keeps components stable even when content changes
+		return previousBlock.id;
+	}
+
+	// No matching previous block, generate new ID
+	return generateBlockId(content, position);
+}
+
+/**
  * Converts document text and evaluation results into blocks
  * Groups consecutive lines of the same type into blocks
  */
@@ -81,7 +104,8 @@ export function documentToBlocks(
 	classifications: LineClassification[] = [],
 	tokensByLine: Record<number, Token[]> = {},
 	diagnosticsByLine: Record<number, Diagnostic[]> = {},
-	evaluationResults: EvaluationResult[] = []
+	evaluationResults: EvaluationResult[] = [],
+	previousBlocks: Block[] = []
 ): Block[] {
 	const lines = documentText.split('\n');
 
@@ -97,9 +121,9 @@ export function documentToBlocks(
 		];
 	}
 
-	// If no classifications provided, treat everything as markdown initially
+	// If no classifications provided OR classifications don't match line count, treat everything as markdown
 	const lineTypes: Array<'MARKDOWN' | 'CALCULATION' | 'BLANK'> =
-		classifications.length > 0
+		classifications.length === lines.length
 			? classifications.map((c) => c.lineType)
 			: lines.map(() => 'MARKDOWN' as const);
 
@@ -124,9 +148,10 @@ export function documentToBlocks(
 		} else {
 			// Finalize current block
 			const content = currentBlockLines.join('\n');
+			const blockType = normalizedCurrentType === 'CALCULATION' ? 'calculation' : 'markdown';
 			blocks.push({
-				id: generateBlockId(content, blocks.length),
-				type: normalizedCurrentType === 'CALCULATION' ? 'calculation' : 'markdown',
+				id: getOrGenerateBlockId(blocks.length, blockType, content, previousBlocks),
+				type: blockType,
 				content,
 				lineStart: currentLineStart,
 				lineEnd: currentLineStart + currentBlockLines.length - 1
@@ -142,9 +167,10 @@ export function documentToBlocks(
 	// Don't forget last block
 	const normalizedCurrentType = currentType === 'BLANK' ? 'MARKDOWN' : currentType;
 	const content = currentBlockLines.join('\n');
+	const blockType = normalizedCurrentType === 'CALCULATION' ? 'calculation' : 'markdown';
 	blocks.push({
-		id: generateBlockId(content, blocks.length),
-		type: normalizedCurrentType === 'CALCULATION' ? 'calculation' : 'markdown',
+		id: getOrGenerateBlockId(blocks.length, blockType, content, previousBlocks),
+		type: blockType,
 		content,
 		lineStart: currentLineStart,
 		lineEnd: currentLineStart + currentBlockLines.length - 1

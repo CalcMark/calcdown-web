@@ -14,7 +14,8 @@
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},
-		onBlur = () => {}
+		onBlur = () => {},
+		onEscape = () => {}
 	}: {
 		block: Block;
 		isActive: boolean;
@@ -25,18 +26,27 @@
 		onTab: () => void;
 		onBackspaceAtStart: () => void;
 		onBlur: () => void;
+		onEscape?: () => void;
 	} = $props();
 
 	let editorElement = $state(null);
 
-	// Focus the editor when block becomes active
-	$effect(() => {
-		if (isActive && editorElement) {
-			editorElement.focus?.();
-		}
-	});
+	// NOTE: Focus is managed by child editors (CalculationBlockEditor/MarkdownBlockEditor)
+	// They handle focus when transitioning from preview to edit mode
+	// We do NOT manage focus here to avoid stealing focus on re-renders
 
-	function handleClick() {
+	function handleClick(event: MouseEvent) {
+		// Only handle clicks on the wrapper, not on the editor content
+		// The editor components have their own click handlers
+		if (event.target === event.currentTarget) {
+			if (!isActive) {
+				onActivate();
+			}
+		}
+	}
+
+	function handlePreviewClick() {
+		// Activate block when clicking on preview
 		if (!isActive) {
 			onActivate();
 		}
@@ -63,6 +73,8 @@
 			{onTab}
 			{onBackspaceAtStart}
 			{onBlur}
+			onEscape={onEscape}
+			onPreviewClick={handlePreviewClick}
 		/>
 	{:else}
 		<MarkdownBlockEditor
@@ -74,6 +86,8 @@
 			{onTab}
 			{onBackspaceAtStart}
 			{onBlur}
+			onEscape={onEscape}
+			onPreviewClick={handlePreviewClick}
 		/>
 	{/if}
 </div>

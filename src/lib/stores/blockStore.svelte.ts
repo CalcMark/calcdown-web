@@ -97,14 +97,15 @@ export function createEditorStore(initialText: string = '') {
 		previousBlocks: []
 	});
 
-	// Derived blocks (IDs are stable based on content + position)
+	// Derived blocks (IDs are stable based on position + type, reusing previous IDs when possible)
 	const derivedBlocks = $derived(
 		documentToBlocks(
 			state.documentText,
 			state.classifications,
 			state.tokensByLine,
 			state.diagnosticsByLine,
-			state.evaluationResults
+			state.evaluationResults,
+			state.previousBlocks
 		)
 	);
 
@@ -144,6 +145,9 @@ export function createEditorStore(initialText: string = '') {
 			const blocks = this.blocks;
 			const blockIndex = blocks.findIndex((b) => b.id === blockId);
 			if (blockIndex !== -1) {
+				// Save current blocks as previous (for stable ID generation)
+				state.previousBlocks = blocks;
+
 				// Split current document into lines
 				const lines = state.documentText.split('\n');
 
@@ -157,7 +161,9 @@ export function createEditorStore(initialText: string = '') {
 				const contentLines = content.split('\n');
 				newLines.splice(startIdx, endIdx - startIdx + 1, ...contentLines);
 
-				// Update documentText
+				// Update documentText (triggers $derived blocks recalculation)
+				// Block IDs are now stable across content changes (ID reuse from previousBlocks)
+				// So activeBlockId doesn't need updating
 				state.documentText = newLines.join('\n');
 				state.documentVersion++;
 			}

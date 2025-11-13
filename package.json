@@ -28,6 +28,7 @@
 		"@sveltejs/kit": "^2.47.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@testing-library/svelte": "^5.2.9",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^22",
 		"@vitest/browser-playwright": "^4.0.5",
 		"eslint": "^9.38.0",

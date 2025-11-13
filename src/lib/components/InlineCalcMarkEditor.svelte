@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { createEditorStore } from '$lib/stores/blockStore.svelte';
 	import { generateBlockId } from '$lib/utils/blockConversion';
+	import { navigateToNextBlock } from '$lib/utils/focusManagement';
+	import { USER_INPUT_DEBOUNCE_MS } from '$lib/constants';
 	import EditableBlock from './EditableBlock.svelte';
 
 	const SAMPLE_DOCUMENT = `# CalcMark Demo - Mixing Markdown and Calculations
@@ -89,7 +91,6 @@ exact_match = 工资 == $5_000`;
 	// State
 	let error = $state(null);
 	let debounceTimer = $state(null);
-	const DEBOUNCE_MS = 150;
 
 	// Trigger initial evaluation (run once)
 	let initialized = $state(false);
@@ -146,7 +147,7 @@ exact_match = 工资 == $5_000`;
 		debounceTimer = setTimeout(() => {
 			processDocument();
 			debounceTimer = null;
-		}, DEBOUNCE_MS);
+		}, USER_INPUT_DEBOUNCE_MS);
 	}
 
 	// Block event handlers
@@ -159,14 +160,16 @@ exact_match = 工资 == $5_000`;
 		scheduleEvaluation();
 	}
 
-	function handleBlockEnter(blockId) {
-		// Trigger evaluation immediately
-		processDocument();
+	async function handleBlockEnter(blockId) {
+		// Find the current block to determine its type
+		const currentBlock = store.blocks.find((b) => b.id === blockId);
+		const blockIndex = store.blocks.findIndex((b) => b.id === blockId);
 
-		// Create new block after current block
+		// Create new block with same type as current block
+		// Calculation → Calculation, Markdown → Markdown
 		const newBlock = {
 			id: generateBlockId(),
-			type: 'markdown',
+			type: currentBlock?.type || 'markdown',
 			content: '',
 			lineStart: 0,
 			lineEnd: 0
@@ -174,12 +177,33 @@ exact_match = 工资 == $5_000`;
 
 		store.insertBlockAfter(blockId, newBlock);
 
-		// Set new block as active
-		store.setActiveBlock(newBlock.id);
+		// Calculate where the new block will be
+		const newBlockIndex = blockIndex + 1;
+
+		// Trigger evaluation immediately
+		await processDocument();
+
+		// After processing, blocks are regenerated with new IDs
+		// Find the new block at the same position and activate it
+		const updatedBlocks = store.blocks;
+		if (updatedBlocks[newBlockIndex]) {
+			store.setActiveBlock(updatedBlocks[newBlockIndex].id);
+		}
 	}
 
-	function handleBlockTab() {
-		// Trigger evaluation immediately
+	function handleBlockTab(blockId: string) {
+		// TAB: Move to next block
+		const result = navigateToNextBlock(store.blocks, blockId);
+
+		if (result.nextBlockId) {
+			// Deactivate current and activate next
+			store.setActiveBlock(result.nextBlockId);
+		} else {
+			// No next block, just deactivate current
+			store.setActiveBlock(null);
+		}
+
+		// Trigger evaluation
 		processDocument();
 	}
 
@@ -200,12 +224,30 @@ exact_match = 工资 == $5_000`;
 	}
 
 	function handleBlockBlur() {
-		// Keep block active for now (we can change this behavior later)
-		// store.setActiveBlock(null);
+		// Don't deactivate on blur - we'll handle it with click outside
+		// This prevents issues with clicking between blocks
+	}
+
+	function handleBlockEscape() {
+		// ESC: Deactivate current block (return to preview)
+		store.setActiveBlock(null);
+	}
+
+	// Global click handler to detect clicks outside blocks
+	function handleDocumentClick(event: MouseEvent) {
+		const target = event.target as HTMLElement;
+
+		// Check if click is outside all editable blocks
+		const clickedInsideEditor = target.closest('.editable-block');
+
+		if (!clickedInsideEditor && store.activeBlockId) {
+			// Clicked outside, deactivate current block
+			store.setActiveBlock(null);
+		}
 	}
 </script>
 
-<div class="inline-editor-container">
+<div class="inline-editor-container" onclick={handleDocumentClick}>
 	<h1>CalcMark Editor (MVP)</h1>
 
 	{#if error}
@@ -227,7 +269,8 @@ exact_match = 工资 == $5_000`;
 				onEnter={() => handleBlockEnter(block.id)}
 				onTab={() => handleBlockTab(block.id)}
 				onBackspaceAtStart={() => handleBlockBackspaceAtStart(block.id)}
-				onBlur={() => handleBlockBlur(block.id)}
+				onBlur={() => handleBlockBlur()}
+				onEscape={() => handleBlockEscape()}
 			/>
 		{/each}
 	</div>
