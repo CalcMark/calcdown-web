@@ -165,6 +165,7 @@ describe('Unicode position conversion', () => {
 			const texts = ['hello', '🏠🍕', '工资', '👋🏽'];
 			for (const text of texts) {
 				let count = 0;
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				for (const _ of text) count++;
 				expect(countRunes(text)).toBe(count);
 			}

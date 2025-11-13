@@ -101,8 +101,22 @@
 	}
 
 	.editable-block.calculation {
-		background: #f0f9ff;
-		border-left: 3px solid #0ea5e9;
+		background: transparent;
+		padding: 0;
+		margin: 0;
+		border: none;
+		border-radius: 0;
+	}
+
+	/* First calculation in a group: no calculation block immediately before it */
+	.editable-block.calculation:not(.editable-block.calculation + .editable-block.calculation)
+		:global(.calculation-line) {
+		border-top-left-radius: 4px;
+	}
+
+	/* Last calculation in a group: no calculation block immediately after it */
+	.editable-block.calculation:not(:has(+ .editable-block.calculation)) :global(.calculation-line) {
+		border-bottom-left-radius: 4px;
 	}
 
 	.editable-block.calculation.active {

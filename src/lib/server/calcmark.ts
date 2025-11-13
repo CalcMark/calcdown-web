@@ -6,12 +6,13 @@
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
+import type { Diagnostic, Token, EvaluationResult } from '$lib/stores/blockStore.svelte';
 
 // Import wasm_exec.js as raw text - Vite will inline it into the bundle
-// @ts-ignore - Vite special import
+// @ts-expect-error - Vite special import
 import wasmExecCode from '../wasm/wasm_exec.js?raw';
 // Import WASM file as URL - Vite will copy it and provide the path
-// @ts-ignore - Vite special import
+// @ts-expect-error - Vite special import
 import wasmUrl from '../wasm/calcmark.wasm?url';
 
 interface CalcMarkAPI {
@@ -27,10 +28,21 @@ interface CalcMarkAPI {
 	getVersion(): string;
 }
 
+// WASM returns diagnostics wrapped in a container object per line
+interface WasmLineDiagnostics {
+	Diagnostics: Diagnostic[];
+}
+
+// WASM diagnostic response structure: { lineNumber: { Diagnostics: [...] } }
+type WasmDiagnosticsByLine = Record<number, WasmLineDiagnostics>;
+
+// Frontend expects: { lineNumber: [...] }
+type DiagnosticsByLine = Record<number, Diagnostic[]>;
+type TokensByLine = Record<number, Token[]>;
+type VariableContext = Record<string, EvaluationResult>;
+
 declare global {
-	// eslint-disable-next-line no-var
 	var calcmark: CalcMarkAPI | undefined;
-	// eslint-disable-next-line no-var
 	var Go: {
 		new (): {
 			importObject: WebAssembly.Imports;
@@ -120,6 +132,23 @@ export async function initCalcMark(): Promise<void> {
 }
 
 /**
+ * Transform WASM diagnostic structure to frontend-expected structure
+ * @param wasmDiagnostics - Diagnostics from WASM: { lineNumber: { Diagnostics: [...] } }
+ * @returns Transformed diagnostics: { lineNumber: [...] }
+ */
+function transformDiagnostics(wasmDiagnostics: WasmDiagnosticsByLine): DiagnosticsByLine {
+	const result: DiagnosticsByLine = {};
+
+	for (const [lineNumberStr, lineData] of Object.entries(wasmDiagnostics)) {
+		const lineNumber = Number(lineNumberStr);
+		// Extract the Diagnostics array from the wrapper object
+		result[lineNumber] = lineData.Diagnostics;
+	}
+
+	return result;
+}
+
+/**
  * Get the CalcMark API (ensures WASM is initialized)
  */
 export async function getCalcMark(): Promise<CalcMarkAPI> {
@@ -150,7 +179,7 @@ export async function processCalcMark(input: string) {
 
 	// Step 2: Tokenize calculation lines only
 	// Returns tokens grouped by line number (1-indexed)
-	const tokensByLine: Record<number, any[]> = {};
+	const tokensByLine: TokensByLine = {};
 
 	for (let i = 0; i < lines.length; i++) {
 		const classification = classifications[i];
@@ -170,13 +199,15 @@ export async function processCalcMark(input: string) {
 	if (evalResult.error) {
 		console.log('[processCalcMark] EVALUATION ERROR:', evalResult.error);
 	}
-	const evaluationResults = evalResult.error ? [] : JSON.parse(evalResult.results);
+	const evaluationResults: EvaluationResult[] = evalResult.error
+		? []
+		: JSON.parse(evalResult.results);
 	console.log('[processCalcMark] Evaluation results count:', evaluationResults.length);
 
 	// Map evaluation results to line numbers and build variable context
 	// evaluateDocument already provides OriginalLine, so we just need to build variableContext
 	const resultsByLine = evaluationResults; // Already has OriginalLine from evaluateDocument
-	const variableContext: Record<string, any> = {}; // varName -> {Value, Symbol, SourceFormat}
+	const variableContext: VariableContext = {}; // varName -> {Value, Symbol, SourceFormat}
 
 	console.log(
 		'[processCalcMark] Building variableContext from',
@@ -186,12 +217,10 @@ export async function processCalcMark(input: string) {
 	for (const result of evaluationResults) {
 		const lineNumber = result.OriginalLine;
 		const tokens = tokensByLine[lineNumber] || [];
-		const assignToken = tokens.find((t: any) => t.type === 'ASSIGN');
+		const assignToken = tokens.find((t) => t.type === 'ASSIGN');
 		if (assignToken) {
 			// First token before ASSIGN is the variable name
-			const varToken = tokens.find(
-				(t: any) => t.type === 'IDENTIFIER' && t.start < assignToken.start
-			);
+			const varToken = tokens.find((t) => t.type === 'IDENTIFIER' && t.start < assignToken.start);
 			if (varToken) {
 				console.log('Adding to variableContext:', varToken.value, '=', result);
 				variableContext[varToken.value] = result;
@@ -200,7 +229,7 @@ export async function processCalcMark(input: string) {
 					'No IDENTIFIER token before ASSIGN on line',
 					lineNumber,
 					'tokens:',
-					tokens.map((t: any) => `${t.type}:${t.value}`)
+					tokens.map((t) => `${t.type}:${t.value}`)
 				);
 			}
 		}
@@ -213,7 +242,13 @@ export async function processCalcMark(input: string) {
 
 	// Step 4: Validate
 	const validateResult = api.validate(input);
-	const diagnostics = validateResult.error ? {} : JSON.parse(validateResult.diagnostics);
+	const rawDiagnostics: WasmDiagnosticsByLine = validateResult.error
+		? {}
+		: JSON.parse(validateResult.diagnostics);
+
+	// Transform diagnostics structure from { lineNumber: { Diagnostics: [...] } }
+	// to { lineNumber: [...] } to match frontend expectations
+	const diagnostics = transformDiagnostics(rawDiagnostics);
 
 	const response = {
 		classifications,

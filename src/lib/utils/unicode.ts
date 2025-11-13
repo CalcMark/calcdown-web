@@ -103,6 +103,7 @@ export function substringRunes(text: string, runeStart: number, runeEnd: number)
  */
 export function countRunes(text: string): number {
 	let count = 0;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	for (const _ of text) {
 		count++;
 	}

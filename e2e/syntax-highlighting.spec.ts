@@ -28,7 +28,9 @@ test.describe('Syntax Highlighting', () => {
 		const totalTokens = tokenIdentifiers + tokenNumbers + tokenOperators;
 		expect(totalTokens).toBeGreaterThan(0);
 
-		console.log(`Token counts: identifiers=${tokenIdentifiers}, numbers=${tokenNumbers}, operators=${tokenOperators}`);
+		console.log(
+			`Token counts: identifiers=${tokenIdentifiers}, numbers=${tokenNumbers}, operators=${tokenOperators}`
+		);
 	});
 
 	test('token spans have proper CSS classes', async ({ page }) => {
@@ -37,7 +39,7 @@ test.describe('Syntax Highlighting', () => {
 
 		// Check that token-identifier class exists
 		const identifierToken = calcLine.locator('[class*="token-identifier"]').first();
-		if (await identifierToken.count() > 0) {
+		if ((await identifierToken.count()) > 0) {
 			await expect(identifierToken).toBeVisible();
 			const className = await identifierToken.getAttribute('class');
 			expect(className).toContain('token-identifier');
@@ -46,7 +48,7 @@ test.describe('Syntax Highlighting', () => {
 
 		// Check that token-number class exists
 		const numberToken = calcLine.locator('[class*="token-number"]').first();
-		if (await numberToken.count() > 0) {
+		if ((await numberToken.count()) > 0) {
 			await expect(numberToken).toBeVisible();
 			const className = await numberToken.getAttribute('class');
 			expect(className).toContain('token-number');
@@ -55,7 +57,7 @@ test.describe('Syntax Highlighting', () => {
 
 		// Check that token-operator class exists
 		const operatorToken = calcLine.locator('[class*="token-operator"]').first();
-		if (await operatorToken.count() > 0) {
+		if ((await operatorToken.count()) > 0) {
 			await expect(operatorToken).toBeVisible();
 			const className = await operatorToken.getAttribute('class');
 			expect(className).toContain('token-operator');
@@ -115,7 +117,9 @@ test.describe('Syntax Highlighting', () => {
 			const className = await token.getAttribute('class');
 
 			expect(text).toBeTruthy();
-			expect(className).toMatch(/token-(identifier|number|operator|keyword|assign|unit|comment|string)/);
+			expect(className).toMatch(
+				/token-(identifier|number|operator|keyword|assign|unit|comment|string)/
+			);
 
 			console.log(`Token ${i + 1}: "${text}" (${className})`);
 		}

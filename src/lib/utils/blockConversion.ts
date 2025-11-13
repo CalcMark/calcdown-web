@@ -2,7 +2,13 @@
  * Utilities for converting between document text and block structure
  */
 
-import type { Block, LineClassification } from '$lib/stores/blockStore.svelte';
+import type {
+	Block,
+	LineClassification,
+	Token,
+	Diagnostic,
+	EvaluationResult
+} from '$lib/stores/blockStore.svelte';
 
 /**
  * Generates a simple hash from a string (for stable block IDs)
@@ -34,12 +40,12 @@ export function generateBlockId(content: string = '', position: number = 0): str
  */
 function attachEvaluationData(
 	block: Block,
-	tokensByLine: Record<number, any[]>,
-	diagnosticsByLine: Record<number, any[]>,
-	evaluationResults: any[]
+	tokensByLine: Record<number, Token[]>,
+	diagnosticsByLine: Record<number, Diagnostic[]>,
+	evaluationResults: EvaluationResult[]
 ): Block {
 	// Get tokens for this block's line range
-	const blockTokens: Record<number, any[]> = {};
+	const blockTokens: Record<number, Token[]> = {};
 	for (let line = block.lineStart; line <= block.lineEnd; line++) {
 		if (tokensByLine[line]) {
 			blockTokens[line] = tokensByLine[line];
@@ -47,7 +53,7 @@ function attachEvaluationData(
 	}
 
 	// Get diagnostics for this block's line range
-	const blockDiagnostics: Record<number, any[]> = {};
+	const blockDiagnostics: Record<number, Diagnostic[]> = {};
 	for (let line = block.lineStart; line <= block.lineEnd; line++) {
 		if (diagnosticsByLine[line]) {
 			blockDiagnostics[line] = diagnosticsByLine[line];
@@ -55,7 +61,7 @@ function attachEvaluationData(
 	}
 
 	// Get evaluation results for this block's line range
-	const blockEvalResults: any[] = [];
+	const blockEvalResults: EvaluationResult[] = [];
 	for (const result of evaluationResults) {
 		if (result.OriginalLine >= block.lineStart && result.OriginalLine <= block.lineEnd) {
 			blockEvalResults.push(result);
@@ -73,9 +79,9 @@ function attachEvaluationData(
 export function documentToBlocks(
 	documentText: string,
 	classifications: LineClassification[] = [],
-	tokensByLine: Record<number, any[]> = {},
-	diagnosticsByLine: Record<number, any[]> = {},
-	evaluationResults: any[] = []
+	tokensByLine: Record<number, Token[]> = {},
+	diagnosticsByLine: Record<number, Diagnostic[]> = {},
+	evaluationResults: EvaluationResult[] = []
 ): Block[] {
 	const lines = documentText.split('\n');
 

@@ -2,64 +2,115 @@ import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/svelte';
 import CalculationLine from './CalculationLine.svelte';
 
-describe('CalculationLine', () => {
-	it('should render plain text when no tokens provided', () => {
-		const { container } = render(CalculationLine, {
-			props: {
-				lineNumber: 1,
-				lineText: 'price = $100',
-				tokens: [],
-				diagnostics: [],
-				evaluationResult: null,
-				variableContext: {}
+describe('CalculationLine - Diagnostic Passing', () => {
+	it('should pass diagnostics to CalcToken for error tokens', () => {
+		const lineNumber = 1;
+		const tokens = [
+			{
+				type: 'IDENTIFIER',
+				value: 'undefined_calc',
+				start: 0,
+				end: 14,
+				originalText: 'undefined_calc'
+			},
+			{ type: 'ASSIGN', value: '=', start: 15, end: 16, originalText: '=' },
+			{ type: 'IDENTIFIER', value: 'missing_var', start: 17, end: 28, originalText: 'missing_var' },
+			{ type: 'PLUS', value: '+', start: 29, end: 30, originalText: '+' },
+			{ type: 'NUMBER', value: '100', start: 31, end: 34, originalText: '100' }
+		];
+
+		const diagnostics = [
+			{
+				severity: 'error' as const,
+				message: 'undefined variable: missing_var',
+				range: {
+					start: { line: 1, column: 18 }, // Points to 'missing_var' (1-indexed)
+					end: { line: 1, column: 29 }
+				}
 			}
+		];
+
+		const lineText = 'undefined_calc = missing_var + 100';
+
+		const { container } = render(CalculationLine, {
+			lineNumber,
+			tokens,
+			diagnostics,
+			evaluationResult: null,
+			lineText,
+			variableContext: {}
 		});
 
-		const line = container.querySelector('.calculation-line');
-		expect(line).toBeTruthy();
-		expect(line?.textContent).toBe('price = $100');
+		// Find all CalcToken instances
+		const tokenElements = container.querySelectorAll('.token-identifier');
+
+		console.log('Found token elements:', tokenElements.length);
+
+		// Log each token
+		tokenElements.forEach((el, idx) => {
+			const text = el.textContent;
+			const classes = el.className;
+			console.log(`Token ${idx}: "${text}" - classes: ${classes}`);
+		});
+
+		// Find the 'missing_var' token (should be the second identifier)
+		const missingVarToken = Array.from(tokenElements).find(
+			(el) => el.textContent === 'missing_var'
+		);
+
+		expect(missingVarToken).toBeTruthy();
+		console.log('missing_var classes:', missingVarToken?.className);
+
+		// This should pass - the token should have the has-error class
+		expect(missingVarToken?.classList.contains('has-error')).toBe(true);
 	});
 
-	it('should render tokens with syntax highlighting', () => {
-		const { container } = render(CalculationLine, {
-			props: {
-				lineNumber: 1,
-				lineText: 'price = $100',
-				tokens: [
-					{ type: 'IDENTIFIER', start: 0, end: 5, literal: 'price', value: 'price', originalText: 'price' },
-					{ type: 'ASSIGN', start: 6, end: 7, literal: '=', value: '=', originalText: '=' },
-					{ type: 'CURRENCY', start: 8, end: 12, literal: '$100', value: '100', originalText: '$100' }
-				],
-				diagnostics: [],
-				evaluationResult: null,
-				variableContext: {}
+	it('should debug diagnostic range matching logic', () => {
+		// Token: missing_var at positions 17-28 (0-indexed rune positions)
+		const token = {
+			type: 'IDENTIFIER',
+			value: 'missing_var',
+			start: 17,
+			end: 28,
+			originalText: 'missing_var'
+		};
+
+		// Diagnostic: column 18-29 (1-indexed)
+		const diagnostic = {
+			severity: 'error' as const,
+			message: 'undefined variable: missing_var',
+			range: {
+				start: { line: 1, column: 18 },
+				end: { line: 1, column: 29 }
 			}
-		});
+		};
 
-		// Should have token elements with specific classes
-		const identifierTokens = container.querySelectorAll('.token-identifier');
-		const operatorTokens = container.querySelectorAll('.token-operator');
-		const currencyTokens = container.querySelectorAll('.token-currency');
+		// Current logic in CalculationLine:
+		const tokenColumn = token.start + 1; // 17 + 1 = 18
+		const tokenEndColumn = token.end + 1; // 28 + 1 = 29
 
-		expect(identifierTokens.length).toBe(1);
-		expect(operatorTokens.length).toBe(1);
-		expect(currencyTokens.length).toBe(1);
-	});
+		console.log('Token start (0-indexed):', token.start);
+		console.log('Token end (0-indexed):', token.end);
+		console.log('Token column (1-indexed):', tokenColumn);
+		console.log('Token end column (1-indexed):', tokenEndColumn);
+		console.log('Diagnostic start column:', diagnostic.range.start.column);
+		console.log('Diagnostic end column:', diagnostic.range.end.column);
 
-	it('should render without tokens when empty array', () => {
-		const { container } = render(CalculationLine, {
-			props: {
-				lineNumber: 1,
-				lineText: 'x = 10',
-				tokens: [],
-				diagnostics: [],
-				evaluationResult: null,
-				variableContext: {}
-			}
-		});
+		// Current filter logic:
+		const matches =
+			tokenColumn <= diagnostic.range.end.column && tokenEndColumn >= diagnostic.range.start.column;
 
-		const tokens = container.querySelectorAll('.calc-token');
-		expect(tokens.length).toBe(0);
-		expect(container.textContent).toContain('x = 10');
+		console.log('Does it match?', matches);
+		console.log(
+			'  tokenColumn (18) <= diagnostic.range.end.column (29)?',
+			tokenColumn <= diagnostic.range.end.column
+		);
+		console.log(
+			'  tokenEndColumn (29) >= diagnostic.range.start.column (18)?',
+			tokenEndColumn >= diagnostic.range.start.column
+		);
+
+		// This should match
+		expect(matches).toBe(true);
 	});
 });

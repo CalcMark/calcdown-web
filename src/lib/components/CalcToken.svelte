@@ -36,8 +36,12 @@
 	};
 
 	const cssClass = $derived(tokenTypeToClass[token.type] || 'token-default');
-	const hasError = $derived(diagnostics.some((d) => d.severity === 'error'));
-	const hasWarning = $derived(!hasError && diagnostics.some((d) => d.severity === 'warning'));
+	const hasError = $derived(
+		Array.isArray(diagnostics) && diagnostics.some((d) => d.severity === 'error')
+	);
+	const hasWarning = $derived(
+		Array.isArray(diagnostics) && !hasError && diagnostics.some((d) => d.severity === 'warning')
+	);
 
 	const diagnosticMessage = $derived(
 		diagnostics.length > 0

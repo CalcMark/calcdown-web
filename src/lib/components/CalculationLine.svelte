@@ -78,12 +78,14 @@
 			}
 
 			// Get diagnostics for this token (diagnostic columns are 1-indexed, in runes)
-			const tokenDiagnostics = Array.isArray(diagnostics) ? diagnostics.filter((d) => {
-				if (!d.range) return false;
-				const tokenColumn = token.start + 1; // Convert to 1-indexed
-				const tokenEndColumn = token.end + 1;
-				return tokenColumn <= d.range.end.column && tokenEndColumn >= d.range.start.column;
-			}) : [];
+			const tokenDiagnostics = Array.isArray(diagnostics)
+				? diagnostics.filter((d) => {
+						if (!d.range) return false;
+						const tokenColumn = token.start + 1; // Convert to 1-indexed
+						const tokenEndColumn = token.end + 1;
+						return tokenColumn <= d.range.end.column && tokenEndColumn >= d.range.start.column;
+					})
+				: [];
 
 			segments.push({
 				type: 'token',
@@ -134,12 +136,14 @@
 	.calculation-line {
 		background: #f0f9ff;
 		padding: 4px 8px;
-		margin: 8px 0;
-		border-radius: 4px;
+		margin: 0;
+		border-radius: 0 4px 4px 0;
 		border-left: 3px solid #0ea5e9;
 		cursor: pointer;
 		transition: background 0.15s ease;
 		min-height: 1.8em;
+		display: flex;
+		align-items: center;
 	}
 
 	.calculation-line:hover {

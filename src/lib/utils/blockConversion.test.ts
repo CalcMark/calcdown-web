@@ -10,12 +10,23 @@ import type { LineClassification } from '$lib/stores/blockStore.svelte';
 
 describe('blockConversion utilities', () => {
 	describe('generateBlockId', () => {
-		it('should generate unique IDs', () => {
-			const id1 = generateBlockId();
-			const id2 = generateBlockId();
-			expect(id1).not.toBe(id2);
+		it('should generate stable IDs for same content and position', () => {
+			const id1 = generateBlockId('test', 0);
+			const id2 = generateBlockId('test', 0);
+			expect(id1).toBe(id2);
 			expect(id1).toMatch(/^block-/);
-			expect(id2).toMatch(/^block-/);
+		});
+
+		it('should generate different IDs for different content', () => {
+			const id1 = generateBlockId('test1', 0);
+			const id2 = generateBlockId('test2', 0);
+			expect(id1).not.toBe(id2);
+		});
+
+		it('should generate different IDs for different positions', () => {
+			const id1 = generateBlockId('test', 0);
+			const id2 = generateBlockId('test', 1);
+			expect(id1).not.toBe(id2);
 		});
 	});
 

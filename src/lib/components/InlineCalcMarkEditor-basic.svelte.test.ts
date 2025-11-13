@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render } from '@testing-library/svelte';
 import InlineCalcMarkEditor from './InlineCalcMarkEditor.svelte';
+import type { Mock } from 'vitest';
 
 // Mock the fetch API
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn() as Mock;
 
 describe('InlineCalcMarkEditor', () => {
 	beforeEach(() => {
@@ -26,7 +27,7 @@ describe('InlineCalcMarkEditor', () => {
 		const calcDoc = `price = $100\ntax = 10%\ntotal = price * (1 + tax)`;
 
 		// Mock API response
-		(global.fetch as any).mockResolvedValueOnce({
+		(globalThis.fetch as Mock).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
 				classifications: [

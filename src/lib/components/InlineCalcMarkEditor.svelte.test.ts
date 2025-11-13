@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/svelte';
+import { render } from '@testing-library/svelte';
 import InlineCalcMarkEditor from './InlineCalcMarkEditor.svelte';
+import type { Mock } from 'vitest';
 
 // Mock the fetch API
-globalThis.fetch = vi.fn();
+globalThis.fetch = vi.fn() as Mock;
 
 describe('InlineCalcMarkEditor - State Reactivity', () => {
 	beforeEach(() => {
@@ -12,7 +13,7 @@ describe('InlineCalcMarkEditor - State Reactivity', () => {
 
 	it('should update DOM when blocks state changes after API call', async () => {
 		// Mock API response with classifications
-		(globalThis.fetch as any).mockResolvedValueOnce({
+		(globalThis.fetch as Mock).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
 				classifications: [
@@ -36,7 +37,7 @@ describe('InlineCalcMarkEditor - State Reactivity', () => {
 		const { container } = render(InlineCalcMarkEditor);
 
 		// Wait for API call
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		// Check if the paragraph shows correct block count
 		const blockCountText = container.querySelector('p')?.textContent;
@@ -63,17 +64,29 @@ price = $100`;
 
 	it('should pass tokens to calculation blocks after API call', async () => {
 		// Mock API response with tokens
-		(globalThis.fetch as any).mockResolvedValueOnce({
+		(globalThis.fetch as Mock).mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
-				classifications: [
-					{ lineType: 'CALCULATION', line: 'price = $100' }
-				],
+				classifications: [{ lineType: 'CALCULATION', line: 'price = $100' }],
 				tokensByLine: {
 					1: [
-						{ type: 'IDENTIFIER', start: 0, end: 5, literal: 'price', value: 'price', originalText: 'price' },
+						{
+							type: 'IDENTIFIER',
+							start: 0,
+							end: 5,
+							literal: 'price',
+							value: 'price',
+							originalText: 'price'
+						},
 						{ type: 'ASSIGN', start: 6, end: 7, literal: '=', value: '=', originalText: '=' },
-						{ type: 'CURRENCY', start: 8, end: 12, literal: '$100', value: '100', originalText: '$100' }
+						{
+							type: 'CURRENCY',
+							start: 8,
+							end: 12,
+							literal: '$100',
+							value: '100',
+							originalText: '$100'
+						}
 					]
 				},
 				diagnostics: {},
@@ -87,7 +100,7 @@ price = $100`;
 		});
 
 		// Wait for API call
-		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		// Check if tokens are rendered
 		const identifierTokens = container.querySelectorAll('.token-identifier');

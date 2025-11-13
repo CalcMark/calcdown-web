@@ -92,7 +92,13 @@
 		<p>Testing individual token rendering with colors:</p>
 		<div class="token-test">
 			<CalcToken
-				token={{ type: 'IDENTIFIER', value: 'discount', originalText: 'discount', start: 0, end: 8 }}
+				token={{
+					type: 'IDENTIFIER',
+					value: 'discount',
+					originalText: 'discount',
+					start: 0,
+					end: 8
+				}}
 				diagnostics={[]}
 				variableContext={sampleVariableContext}
 			/>
@@ -205,7 +211,7 @@
 		<div class="block-test">
 			<CalculationBlockEditor
 				block={calculationBlock}
-				isActive={isActive}
+				{isActive}
 				variableContext={sampleVariableContext}
 				onContentChange={() => {}}
 				onEnter={() => {}}
@@ -238,7 +244,10 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 40px 20px;
-		font-family: system-ui, -apple-system, sans-serif;
+		font-family:
+			system-ui,
+			-apple-system,
+			sans-serif;
 	}
 
 	h1 {

@@ -121,7 +121,6 @@ exact_match = 工资 == $5_000`;
 
 			const result = await response.json();
 
-
 			// Update evaluation results (Controller → Store)
 			// This triggers block re-derivation with syntax highlighting
 			store.setEvaluationResults(
@@ -131,10 +130,9 @@ exact_match = 工资 == $5_000`;
 				result.evaluationResults || [],
 				result.variableContext || {}
 			);
-
 		} catch (err) {
 			error = err.message;
-		} finally{
+		} finally {
 			store.setProcessing(false);
 		}
 	}

@@ -12,9 +12,23 @@ describe('CalculationBlockEditor', () => {
 			lineEnd: 1,
 			tokens: {
 				1: [
-					{ type: 'IDENTIFIER', start: 0, end: 5, literal: 'price', value: 'price', originalText: 'price' },
+					{
+						type: 'IDENTIFIER',
+						start: 0,
+						end: 5,
+						literal: 'price',
+						value: 'price',
+						originalText: 'price'
+					},
 					{ type: 'ASSIGN', start: 6, end: 7, literal: '=', value: '=', originalText: '=' },
-					{ type: 'CURRENCY', start: 8, end: 12, literal: '$100', value: '100', originalText: '$100' }
+					{
+						type: 'CURRENCY',
+						start: 8,
+						end: 12,
+						literal: '$100',
+						value: '100',
+						originalText: '$100'
+					}
 				]
 			},
 			diagnostics: {},
