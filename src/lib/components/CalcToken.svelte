@@ -80,15 +80,6 @@
 	// Build tooltip: prioritize identifier value, then diagnostics
 	const tooltipMessage = $derived(identifierValue || diagnosticMessage);
 
-	// Debug logging
-	$effect(() => {
-		if (token.type === 'IDENTIFIER' && token.value) {
-			console.log(
-				`Token: "${token.value}" | Has in context: ${token.value in variableContext} | Context keys: [${Object.keys(variableContext).join(', ')}] | IdentifierValue: "${identifierValue}" | TooltipMessage: "${tooltipMessage}"`
-			);
-		}
-	});
-
 	// Always use originalText to preserve user intent
 	// The user wrote "$1,500" so we display "$1,500", not "1500$"
 	const displayValue = $derived(token.originalText || token.value);

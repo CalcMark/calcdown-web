@@ -30,7 +30,10 @@
 	// Get tokens, diagnostics, and evaluation results for the first line of this block
 	// (In MVP, calculation blocks are single-line)
 	const lineNumber = $derived(block.lineStart);
-	const tokens = $derived((block.tokens && block.tokens[lineNumber]) || []);
+	const tokens = $derived.by(() => {
+		const t = (block.tokens && block.tokens[lineNumber]) || [];
+		return t;
+	});
 	const diagnostics = $derived((block.diagnostics && block.diagnostics[lineNumber]) || []);
 	const evaluationResult = $derived(
 		block.evaluationResults?.find((r) => r.OriginalLine === lineNumber) || null

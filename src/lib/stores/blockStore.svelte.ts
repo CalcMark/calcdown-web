@@ -3,6 +3,8 @@
  * Manages document state as a collection of editable blocks
  */
 
+import { documentToBlocks } from '$lib/utils/blockConversion';
+
 export interface Block {
 	id: string;
 	type: 'markdown' | 'calculation';
@@ -52,30 +54,72 @@ export interface EvaluationResult {
 }
 
 export interface EditorState {
-	blocks: Block[];
-	activeBlockId: string | null;
+	// Model: raw CalcMark document text (source of truth)
+	documentText: string;
+
+	// Controller results: evaluation data from server
+	classifications: LineClassification[];
+	tokensByLine: Record<number, Token[]>;
+	diagnosticsByLine: Record<number, Diagnostic[]>;
+	evaluationResults: EvaluationResult[];
 	variableContext: Record<string, EvaluationResult>;
+
+	// UI state
+	activeBlockId: string | null;
 	documentVersion: number;
 	isProcessing: boolean;
+
+	// Cached previous blocks for ID preservation
+	previousBlocks: Block[];
 }
 
 /**
  * Creates a new editor store
  */
-export function createEditorStore() {
+export function createEditorStore(initialText: string = '') {
 	const state = $state<EditorState>({
-		blocks: [],
-		activeBlockId: null,
+		// Model: raw text
+		documentText: initialText,
+
+		// Controller results: empty until first evaluation
+		classifications: [],
+		tokensByLine: {},
+		diagnosticsByLine: {},
+		evaluationResults: [],
 		variableContext: {},
+
+		// UI state
+		activeBlockId: null,
 		documentVersion: 0,
-		isProcessing: false
+		isProcessing: false,
+
+		// Cached previous blocks
+		previousBlocks: []
 	});
 
+	// Derived blocks (IDs are stable based on content + position)
+	const derivedBlocks = $derived(
+		documentToBlocks(
+			state.documentText,
+			state.classifications,
+			state.tokensByLine,
+			state.diagnosticsByLine,
+			state.evaluationResults
+		)
+	);
+
 	return {
-		// Getters
-		get blocks() {
-			return state.blocks;
+		// Model: raw document text
+		get documentText() {
+			return state.documentText;
 		},
+
+		// View: blocks derived from documentText + evaluation results
+		get blocks() {
+			return derivedBlocks;
+		},
+
+		// UI state getters
 		get activeBlockId() {
 			return state.activeBlockId;
 		},
@@ -89,115 +133,100 @@ export function createEditorStore() {
 			return state.documentVersion;
 		},
 
-		// Derived: full document text
-		get documentText() {
-			return state.blocks.map((b) => b.content).join('\n');
-		},
-
-		// Actions
-		setBlocks(blocks: Block[]) {
-			state.blocks = blocks;
+		// Actions: Model updates
+		setDocumentText(text: string) {
+			state.documentText = text;
 			state.documentVersion++;
 		},
 
-		setActiveBlock(blockId: string | null) {
-			state.activeBlockId = blockId;
-		},
-
 		updateBlockContent(blockId: string, content: string) {
-			const blockIndex = state.blocks.findIndex((b) => b.id === blockId);
+			// Find the block to update (blocks are derived, so we need fresh reference)
+			const blocks = this.blocks;
+			const blockIndex = blocks.findIndex((b) => b.id === blockId);
 			if (blockIndex !== -1) {
-				state.blocks[blockIndex].content = content;
+				// Split current document into lines
+				const lines = state.documentText.split('\n');
+
+				// Calculate line range for this block
+				const block = blocks[blockIndex];
+				const startIdx = block.lineStart - 1;
+				const endIdx = block.lineEnd - 1;
+
+				// Replace the lines corresponding to this block
+				const newLines = [...lines];
+				const contentLines = content.split('\n');
+				newLines.splice(startIdx, endIdx - startIdx + 1, ...contentLines);
+
+				// Update documentText
+				state.documentText = newLines.join('\n');
 				state.documentVersion++;
 			}
 		},
 
+		// Actions: Controller updates (from server evaluation)
+		setEvaluationResults(
+			classifications: LineClassification[],
+			tokensByLine: Record<number, Token[]>,
+			diagnosticsByLine: Record<number, Diagnostic[]>,
+			evaluationResults: EvaluationResult[],
+			variableContext: Record<string, EvaluationResult>
+		) {
+			state.classifications = classifications;
+			state.tokensByLine = tokensByLine;
+			state.diagnosticsByLine = diagnosticsByLine;
+			state.evaluationResults = evaluationResults;
+			state.variableContext = variableContext;
+		},
+
+		// Actions: UI state
+		setActiveBlock(blockId: string | null) {
+			state.activeBlockId = blockId;
+		},
+
 		insertBlockAfter(afterBlockId: string, newBlock: Block) {
-			const index = state.blocks.findIndex((b) => b.id === afterBlockId);
+			const blocks = this.blocks;
+			const index = blocks.findIndex((b) => b.id === afterBlockId);
 			if (index !== -1) {
-				state.blocks.splice(index + 1, 0, newBlock);
+				const newBlocks = [...blocks];
+				newBlocks.splice(index + 1, 0, newBlock);
+				state.documentText = newBlocks.map((b) => b.content).join('\n');
 				state.documentVersion++;
 			}
 		},
 
 		removeBlock(blockId: string) {
-			state.blocks = state.blocks.filter((b) => b.id !== blockId);
+			const blocks = this.blocks;
+			const newBlocks = blocks.filter((b) => b.id !== blockId);
+			state.documentText = newBlocks.map((b) => b.content).join('\n');
 			state.documentVersion++;
 		},
 
 		mergeBlocks(sourceBlockId: string, targetBlockId: string) {
-			const sourceIndex = state.blocks.findIndex((b) => b.id === sourceBlockId);
-			const targetIndex = state.blocks.findIndex((b) => b.id === targetBlockId);
+			const blocks = this.blocks;
+			const sourceIndex = blocks.findIndex((b) => b.id === sourceBlockId);
+			const targetIndex = blocks.findIndex((b) => b.id === targetBlockId);
 
 			if (sourceIndex !== -1 && targetIndex !== -1) {
-				const source = state.blocks[sourceIndex];
-				const target = state.blocks[targetIndex];
+				const newBlocks = [...blocks];
+				const source = newBlocks[sourceIndex];
+				const target = newBlocks[targetIndex];
 
 				// Merge content
-				target.content = target.content + '\n' + source.content;
+				newBlocks[targetIndex] = {
+					...target,
+					content: target.content + '\n' + source.content
+				};
 
 				// Remove source block
-				state.blocks.splice(sourceIndex, 1);
+				newBlocks.splice(sourceIndex, 1);
+
+				state.documentText = newBlocks.map((b) => b.content).join('\n');
 				state.documentVersion++;
 			}
 		},
 
-		setVariableContext(context: Record<string, EvaluationResult>) {
-			state.variableContext = context;
-		},
-
 		setProcessing(isProcessing: boolean) {
 			state.isProcessing = isProcessing;
-		},
-
-		// Update blocks with evaluation results
-		updateBlockResults(
-			classifications: LineClassification[],
-			tokensByLine: Record<number, Token[]>,
-			diagnosticsByLine: Record<number, Diagnostic[]>,
-			evaluationResults: EvaluationResult[]
-		) {
-			// Build maps for quick lookup
-			const evalByLine = new Map<number, EvaluationResult>();
-			evaluationResults.forEach((result) => {
-				if (result.OriginalLine) {
-					evalByLine.set(result.OriginalLine, result);
-				}
-			});
-
-			// Update each block with its corresponding data
-			state.blocks.forEach((block) => {
-				// Get classifications for this block's line range
-				block.classification = classifications.slice(block.lineStart - 1, block.lineEnd);
-
-				// Get tokens for this block
-				const blockTokens: Record<number, Token[]> = {};
-				for (let line = block.lineStart; line <= block.lineEnd; line++) {
-					if (tokensByLine[line]) {
-						blockTokens[line] = tokensByLine[line];
-					}
-				}
-				block.tokens = blockTokens;
-
-				// Get diagnostics for this block
-				const blockDiagnostics: Record<number, Diagnostic[]> = {};
-				for (let line = block.lineStart; line <= block.lineEnd; line++) {
-					if (diagnosticsByLine[line]) {
-						blockDiagnostics[line] = diagnosticsByLine[line];
-					}
-				}
-				block.diagnostics = blockDiagnostics;
-
-				// Get evaluation results for this block
-				const blockEvalResults: EvaluationResult[] = [];
-				for (let line = block.lineStart; line <= block.lineEnd; line++) {
-					const result = evalByLine.get(line);
-					if (result) {
-						blockEvalResults.push(result);
-					}
-				}
-				block.evaluationResults = blockEvalResults;
-			});
 		}
 	};
 }

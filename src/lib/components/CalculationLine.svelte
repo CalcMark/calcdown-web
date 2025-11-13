@@ -29,6 +29,9 @@
 
 	// Build diagnostic messages for the line (only line-level diagnostics without range)
 	const lineDiagnosticMessage = $derived(() => {
+		if (!Array.isArray(diagnostics)) {
+			return null;
+		}
 		const lineLevelDiags = diagnostics.filter((d) => !d.range);
 		if (lineLevelDiags.length === 0) return null;
 		return lineLevelDiags
@@ -56,6 +59,9 @@
 		let currentUtf16Pos = 0;
 
 		// Filter and sort tokens (positions are already line-relative, in runes)
+		if (!Array.isArray(tokens)) {
+			return [{ type: 'text', content: lineText }];
+		}
 		const lineTokens = tokens
 			.filter((t) => t.type !== 'NEWLINE' && t.type !== 'EOF')
 			.sort((a, b) => a.start - b.start);
@@ -72,12 +78,12 @@
 			}
 
 			// Get diagnostics for this token (diagnostic columns are 1-indexed, in runes)
-			const tokenDiagnostics = diagnostics.filter((d) => {
+			const tokenDiagnostics = Array.isArray(diagnostics) ? diagnostics.filter((d) => {
 				if (!d.range) return false;
 				const tokenColumn = token.start + 1; // Convert to 1-indexed
 				const tokenEndColumn = token.end + 1;
 				return tokenColumn <= d.range.end.column && tokenEndColumn >= d.range.start.column;
-			});
+			}) : [];
 
 			segments.push({
 				type: 'token',

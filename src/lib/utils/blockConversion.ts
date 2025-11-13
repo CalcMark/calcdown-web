@@ -5,19 +5,77 @@
 import type { Block, LineClassification } from '$lib/stores/blockStore.svelte';
 
 /**
- * Generates a unique block ID
+ * Generates a simple hash from a string (for stable block IDs)
  */
-export function generateBlockId(): string {
-	return `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+function simpleHash(str: string): string {
+	let hash = 0;
+	for (let i = 0; i < str.length; i++) {
+		const char = str.charCodeAt(i);
+		hash = (hash << 5) - hash + char;
+		hash = hash & hash; // Convert to 32bit integer
+	}
+	return Math.abs(hash).toString(36);
 }
 
 /**
- * Converts document text and classifications into blocks
+ * Generates a stable block ID based on content and position
+ */
+export function generateBlockId(content: string = '', position: number = 0): string {
+	const contentHash = simpleHash(content);
+	return `block-${position}-${contentHash}`;
+}
+
+/**
+ * Converts document text and evaluation results into blocks
  * Groups consecutive lines of the same type into blocks
  */
+/**
+ * Helper to attach evaluation data to a block
+ */
+function attachEvaluationData(
+	block: Block,
+	tokensByLine: Record<number, any[]>,
+	diagnosticsByLine: Record<number, any[]>,
+	evaluationResults: any[]
+): Block {
+	// Get tokens for this block's line range
+	const blockTokens: Record<number, any[]> = {};
+	for (let line = block.lineStart; line <= block.lineEnd; line++) {
+		if (tokensByLine[line]) {
+			blockTokens[line] = tokensByLine[line];
+		}
+	}
+
+	// Get diagnostics for this block's line range
+	const blockDiagnostics: Record<number, any[]> = {};
+	for (let line = block.lineStart; line <= block.lineEnd; line++) {
+		if (diagnosticsByLine[line]) {
+			blockDiagnostics[line] = diagnosticsByLine[line];
+		}
+	}
+
+	// Get evaluation results for this block's line range
+	const blockEvalResults: any[] = [];
+	for (const result of evaluationResults) {
+		if (result.OriginalLine >= block.lineStart && result.OriginalLine <= block.lineEnd) {
+			blockEvalResults.push(result);
+		}
+	}
+
+	return {
+		...block,
+		tokens: blockTokens,
+		diagnostics: blockDiagnostics,
+		evaluationResults: blockEvalResults
+	};
+}
+
 export function documentToBlocks(
 	documentText: string,
-	classifications: LineClassification[] = []
+	classifications: LineClassification[] = [],
+	tokensByLine: Record<number, any[]> = {},
+	diagnosticsByLine: Record<number, any[]> = {},
+	evaluationResults: any[] = []
 ): Block[] {
 	const lines = documentText.split('\n');
 
@@ -59,10 +117,11 @@ export function documentToBlocks(
 			currentBlockLines.push(line);
 		} else {
 			// Finalize current block
+			const content = currentBlockLines.join('\n');
 			blocks.push({
-				id: generateBlockId(),
+				id: generateBlockId(content, blocks.length),
 				type: normalizedCurrentType === 'CALCULATION' ? 'calculation' : 'markdown',
-				content: currentBlockLines.join('\n'),
+				content,
 				lineStart: currentLineStart,
 				lineEnd: currentLineStart + currentBlockLines.length - 1
 			});
@@ -76,15 +135,19 @@ export function documentToBlocks(
 
 	// Don't forget last block
 	const normalizedCurrentType = currentType === 'BLANK' ? 'MARKDOWN' : currentType;
+	const content = currentBlockLines.join('\n');
 	blocks.push({
-		id: generateBlockId(),
+		id: generateBlockId(content, blocks.length),
 		type: normalizedCurrentType === 'CALCULATION' ? 'calculation' : 'markdown',
-		content: currentBlockLines.join('\n'),
+		content,
 		lineStart: currentLineStart,
 		lineEnd: currentLineStart + currentBlockLines.length - 1
 	});
 
-	return blocks;
+	// Attach evaluation data to all blocks
+	return blocks.map((block) =>
+		attachEvaluationData(block, tokensByLine, diagnosticsByLine, evaluationResults)
+	);
 }
 
 /**

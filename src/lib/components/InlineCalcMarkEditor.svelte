@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { createEditorStore } from '$lib/stores/blockStore.svelte';
-	import {
-		documentToBlocks,
-		generateBlockId,
-		recalculateLineNumbers
-	} from '$lib/utils/blockConversion';
+	import { generateBlockId } from '$lib/utils/blockConversion';
 	import EditableBlock from './EditableBlock.svelte';
 
 	const SAMPLE_DOCUMENT = `# CalcMark Demo - Mixing Markdown and Calculations
@@ -95,14 +91,11 @@ exact_match = 工资 == $5_000`;
 	let debounceTimer = $state(null);
 	const DEBOUNCE_MS = 150;
 
-	// Initialize blocks from sample document (run once)
+	// Trigger initial evaluation (run once)
 	let initialized = $state(false);
 	$effect(() => {
 		if (!initialized) {
 			initialized = true;
-			const initialBlocks = documentToBlocks(SAMPLE_DOCUMENT);
-			store.setBlocks(initialBlocks);
-			// Trigger initial evaluation
 			processDocument();
 		}
 	});
@@ -128,34 +121,20 @@ exact_match = 工资 == $5_000`;
 
 			const result = await response.json();
 
-			// Update blocks with evaluation results
-			store.updateBlockResults(
+
+			// Update evaluation results (Controller → Store)
+			// This triggers block re-derivation with syntax highlighting
+			store.setEvaluationResults(
 				result.classifications || [],
 				result.tokensByLine || {},
 				result.diagnostics || {},
-				result.evaluationResults || []
+				result.evaluationResults || [],
+				result.variableContext || {}
 			);
 
-			// Update variable context
-			store.setVariableContext(result.variableContext || {});
-
-			// Rebuild blocks based on new classifications
-			const newBlocks = documentToBlocks(documentText, result.classifications || []);
-
-			// Preserve block IDs where possible to maintain focus
-			const updatedBlocks = newBlocks.map((newBlock, index) => {
-				const oldBlock = store.blocks[index];
-				if (oldBlock && oldBlock.content === newBlock.content) {
-					return { ...newBlock, id: oldBlock.id };
-				}
-				return newBlock;
-			});
-
-			store.setBlocks(updatedBlocks);
 		} catch (err) {
 			error = err.message;
-			console.error('Processing error:', err);
-		} finally {
+		} finally{
 			store.setProcessing(false);
 		}
 	}
@@ -197,10 +176,6 @@ exact_match = 工资 == $5_000`;
 
 		store.insertBlockAfter(blockId, newBlock);
 
-		// Recalculate line numbers
-		const updatedBlocks = recalculateLineNumbers(store.blocks);
-		store.setBlocks(updatedBlocks);
-
 		// Set new block as active
 		store.setActiveBlock(newBlock.id);
 	}
@@ -217,10 +192,6 @@ exact_match = 工资 == $5_000`;
 
 			// Merge current block into previous block
 			store.mergeBlocks(blockId, previousBlockId);
-
-			// Recalculate line numbers
-			const updatedBlocks = recalculateLineNumbers(store.blocks);
-			store.setBlocks(updatedBlocks);
 
 			// Set previous block as active
 			store.setActiveBlock(previousBlockId);

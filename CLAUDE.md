@@ -38,6 +38,14 @@ The editor relies on the WASM created by the CalcMark implementation at https://
 - Always run tests and fix errors before declaring a task to be complete.
 - Keep code in $lib/components and $lib/utils or server routes unless code should be global in nature.
 
+### Svelte 5 Reactivity Best Practices
+
+- **Keep state management simple**: Svelte 5's reactivity works best with direct, simple patterns. Avoid overly complex helper functions or state manipulation.
+- **Direct assignments trigger reactivity**: Use `blocks = documentToBlocks(...)` rather than complex immutable update patterns.
+- **Minimize intermediary state**: Each additional layer of state management can break reactivity. Keep the data flow direct: API → state → template.
+- **Test reactivity early**: If state updates don't trigger DOM re-renders, simplify the component structure before adding complexity.
+- **Test components in isolation**: Use `@testing-library/svelte` with Vitest browser mode to test Svelte components independently of any page routes. Create `*.svelte.test.ts` files to verify component reactivity and behavior without the overhead of full E2E tests. This catches reactivity issues faster and makes debugging easier.
+
 ## Svelte Front-end
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
