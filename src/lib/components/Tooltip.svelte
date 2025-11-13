@@ -1,6 +1,4 @@
 <script>
-	import { onMount } from 'svelte';
-
 	let { children, message } = $props();
 
 	let showTooltip = $state(false);
@@ -36,6 +34,7 @@
 	onmousemove={handleMouseMove}
 	onmouseleave={handleMouseLeave}
 	class="tooltip-container"
+	role="tooltip"
 >
 	{@render children()}
 </span>

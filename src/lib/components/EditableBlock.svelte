@@ -8,7 +8,9 @@
 		isActive = false,
 		variableContext = {},
 		onActivate = () => {},
-		onContentChange = (_: string) => {},
+		onContentChange = (_content: string) => {
+			void _content;
+		},
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},

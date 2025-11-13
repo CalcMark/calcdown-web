@@ -3,7 +3,9 @@
 	import { runeToUtf16Position } from '$lib/utils/unicode';
 
 	let {
-		lineNumber,
+		// lineNumber is passed but not used in this component
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		lineNumber: _lineNumber,
 		tokens = [],
 		diagnostics = [],
 		evaluationResult = null,
@@ -38,6 +40,8 @@
 	});
 
 	const resultText = $derived(formatResultValue(evaluationResult));
+	// Tooltip text is available but not currently used in the render
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const tooltipText = $derived(resultText || lineDiagnosticMessage());
 
 	// Group tokens and whitespace for rendering
@@ -95,9 +99,12 @@
 
 	// React to changes in tokens, diagnostics, or lineText
 	const segments = $derived.by(() => {
-		// Access dependencies to track them
+		// Access dependencies to track them (intentional no-op expressions for reactivity)
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		tokens;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		diagnostics;
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		lineText;
 		return buildLineSegments();
 	});
@@ -105,7 +112,7 @@
 
 <div class="calculation-line">
 	{#if segments.length > 0}
-		{#each segments as segment}
+		{#each segments as segment, i (i)}
 			{#if segment.type === 'token'}
 				<CalcToken token={segment.token} diagnostics={segment.diagnostics} {variableContext} />
 			{:else}
@@ -113,7 +120,7 @@
 			{/if}
 		{/each}
 	{:else}
-		{sourceText}
+		{lineText}
 	{/if}
 </div>
 

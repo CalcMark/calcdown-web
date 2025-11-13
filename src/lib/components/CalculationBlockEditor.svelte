@@ -6,7 +6,9 @@
 		block,
 		isActive = false,
 		variableContext = {},
-		onContentChange = (_: string) => {},
+		onContentChange = (_content: string) => {
+			void _content;
+		},
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},

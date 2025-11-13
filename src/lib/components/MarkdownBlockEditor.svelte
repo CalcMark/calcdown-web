@@ -5,7 +5,9 @@
 	let {
 		block,
 		isActive = false,
-		onContentChange = (_: string) => {},
+		onContentChange = (_content: string) => {
+			void _content;
+		},
 		onEnter = () => {},
 		onTab = () => {},
 		onBackspaceAtStart = () => {},
