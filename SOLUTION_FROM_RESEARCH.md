@@ -3,11 +3,13 @@
 ## Research Findings from Production Editors
 
 ### 1. Trix Editor
+
 - **Uses `beforeinput` event** (fires BEFORE DOM mutations)
 - **Two-tier controller system**: Level2InputController (modern browsers) vs Level0InputController (fallback)
 - **Still has Safari issues** - same problems we're experiencing (text appearing in reverse, rendering delays)
 
 ### 2. ProseMirror/CodeMirror
+
 - **Uses "updating" flag pattern** to prevent infinite loops
 - **Separates read and write phases** using `requestAnimationFrame`
 - **Document-diffing algorithm** for minimal DOM updates
@@ -46,6 +48,7 @@ class CodeBlock {
 ### Problem Recap
 
 Current broken flow:
+
 ```
 User types → input event → handleInput()
   ↓
@@ -69,33 +72,28 @@ User types → input event → handleInput()
 let isUpdatingFromInput = $state(false);
 
 function handleInput() {
-    if (!textareaElement) return;
+	if (!textareaElement) return;
 
-    // Set flag to prevent bind:value from writing back
-    isUpdatingFromInput = true;
+	// Set flag to prevent bind:value from writing back
+	isUpdatingFromInput = true;
 
-    try {
-        rawText = textareaElement.value;
-        doc.updateRawText(rawText);
-        updateCursorPosition();
-        scheduleEvaluation();
-    } finally {
-        // Clear flag AFTER Svelte's reactivity has processed
-        queueMicrotask(() => {
-            isUpdatingFromInput = false;
-        });
-    }
+	try {
+		rawText = textareaElement.value;
+		doc.updateRawText(rawText);
+		updateCursorPosition();
+		scheduleEvaluation();
+	} finally {
+		// Clear flag AFTER Svelte's reactivity has processed
+		queueMicrotask(() => {
+			isUpdatingFromInput = false;
+		});
+	}
 }
 ```
 
 ```svelte
 <!-- Modified textarea binding -->
-<textarea
-    bind:this={textareaElement}
-    bind:value={rawText}
-    oninput={handleInput}
-    ...
-/>
+<textarea bind:this={textareaElement} bind:value={rawText} oninput={handleInput} ... />
 ```
 
 But wait - Svelte's `bind:value` is automatic. We can't directly prevent it from updating.
@@ -107,37 +105,33 @@ let internalText = $state('');
 let isUpdatingFromInput = $state(false);
 
 function handleInput() {
-    if (!textareaElement) return;
+	if (!textareaElement) return;
 
-    isUpdatingFromInput = true;
+	isUpdatingFromInput = true;
 
-    internalText = textareaElement.value;
-    doc.updateRawText(internalText);
-    updateCursorPosition();
-    scheduleEvaluation();
+	internalText = textareaElement.value;
+	doc.updateRawText(internalText);
+	updateCursorPosition();
+	scheduleEvaluation();
 
-    // Use microtask to ensure Svelte's reactivity completes
-    queueMicrotask(() => {
-        isUpdatingFromInput = false;
-    });
+	// Use microtask to ensure Svelte's reactivity completes
+	queueMicrotask(() => {
+		isUpdatingFromInput = false;
+	});
 }
 
 // Sync internal state to textarea, but ONLY when not coming from input
 $effect(() => {
-    if (textareaElement && !isUpdatingFromInput) {
-        // Only update textarea when changes come from outside (e.g., evaluation results)
-        textareaElement.value = internalText;
-    }
+	if (textareaElement && !isUpdatingFromInput) {
+		// Only update textarea when changes come from outside (e.g., evaluation results)
+		textareaElement.value = internalText;
+	}
 });
 ```
 
 ```svelte
 <!-- NO bind:value - manual control -->
-<textarea
-    bind:this={textareaElement}
-    oninput={handleInput}
-    ...
-/>
+<textarea bind:this={textareaElement} oninput={handleInput} ... />
 ```
 
 ---
@@ -153,30 +147,30 @@ let isTyping = $state(false);
 let typingTimer: any = null;
 
 function handleInput() {
-    if (!textareaElement) return;
+	if (!textareaElement) return;
 
-    // Mark as typing
-    isTyping = true;
-    clearTimeout(typingTimer);
+	// Mark as typing
+	isTyping = true;
+	clearTimeout(typingTimer);
 
-    // Update from textarea (one-way)
-    rawText = textareaElement.value;
-    doc.updateRawText(rawText);
-    updateCursorPosition();
+	// Update from textarea (one-way)
+	rawText = textareaElement.value;
+	doc.updateRawText(rawText);
+	updateCursorPosition();
 
-    // Schedule evaluation AFTER typing stops
-    typingTimer = setTimeout(() => {
-        isTyping = false;
-        evaluateDocument();
-    }, USER_INPUT_DEBOUNCE_MS);
+	// Schedule evaluation AFTER typing stops
+	typingTimer = setTimeout(() => {
+		isTyping = false;
+		evaluateDocument();
+	}, USER_INPUT_DEBOUNCE_MS);
 }
 
 // Only allow bind:value updates when NOT typing
 $effect(() => {
-    if (textareaElement && !isTyping && rawText !== textareaElement.value) {
-        // Evaluation results can update textarea, but only when user not typing
-        textareaElement.value = rawText;
-    }
+	if (textareaElement && !isTyping && rawText !== textareaElement.value) {
+		// Evaluation results can update textarea, but only when user not typing
+		textareaElement.value = rawText;
+	}
 });
 ```
 
@@ -200,56 +194,56 @@ let isUpdatingFromEvaluation = $state(false);
 
 // Handle user input
 function handleInput(event: Event) {
-    if (!textareaElement || isUpdatingFromEvaluation) return;
+	if (!textareaElement || isUpdatingFromEvaluation) return;
 
-    isUpdatingFromUser = true;
+	isUpdatingFromUser = true;
 
-    try {
-        // Read from textarea (source of truth)
-        const newText = textareaElement.value;
+	try {
+		// Read from textarea (source of truth)
+		const newText = textareaElement.value;
 
-        // Update document model
-        doc.updateRawText(newText);
+		// Update document model
+		doc.updateRawText(newText);
 
-        // Update cursor immediately
-        updateCursorPosition();
+		// Update cursor immediately
+		updateCursorPosition();
 
-        // Schedule evaluation
-        scheduleEvaluation();
-    } finally {
-        // Clear flag after current event loop
-        queueMicrotask(() => {
-            isUpdatingFromUser = false;
-        });
-    }
+		// Schedule evaluation
+		scheduleEvaluation();
+	} finally {
+		// Clear flag after current event loop
+		queueMicrotask(() => {
+			isUpdatingFromUser = false;
+		});
+	}
 }
 
 // Handle evaluation results
 async function evaluateDocument() {
-    if (isUpdatingFromUser) {
-        // Skip evaluation if user is actively typing
-        return;
-    }
+	if (isUpdatingFromUser) {
+		// Skip evaluation if user is actively typing
+		return;
+	}
 
-    isUpdatingFromEvaluation = true;
+	isUpdatingFromEvaluation = true;
 
-    try {
-        // ... evaluation logic ...
+	try {
+		// ... evaluation logic ...
 
-        // Update overlay rendering (NOT textarea)
-        lines = doc.getLines();
+		// Update overlay rendering (NOT textarea)
+		lines = doc.getLines();
 
-        // Restore cursor position
-        updateCursorPosition();
-    } finally {
-        isUpdatingFromEvaluation = false;
-    }
+		// Restore cursor position
+		updateCursorPosition();
+	} finally {
+		isUpdatingFromEvaluation = false;
+	}
 }
 
 // Optional: Use beforeinput for better control (Level 2 browsers)
 function handleBeforeInput(event: InputEvent) {
-    // Can intercept and modify input before it affects DOM
-    // Useful for special handling (auto-formatting, etc.)
+	// Can intercept and modify input before it affects DOM
+	// Useful for special handling (auto-formatting, etc.)
 }
 ```
 
@@ -277,6 +271,7 @@ function handleBeforeInput(event: InputEvent) {
 ## Testing Strategy
 
 After implementing, test:
+
 1. Rapid typing with random delays
 2. Typing during evaluation
 3. Safari/WebKit specific tests

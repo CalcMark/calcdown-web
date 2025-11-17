@@ -18,19 +18,23 @@ CSS provides **no property** to control cursor height in a textarea. The browser
 ## Attempted Solutions
 
 ### ❌ CSS `caret-color`
+
 - Only controls cursor **color**, not height
 - Cannot affect cursor dimensions
 
 ### ❌ Custom CSS properties
+
 - No `caret-height`, `cursor-height`, or similar exists
 - `line-height` affects both text spacing AND cursor height
 
 ### ✅ Reduce `line-height`
+
 - Setting `line-height: 1` makes cursor = font-size
 - **Problem**: Reduces text readability, lines too cramped
 - **Not recommended** for a document editor
 
 ### ✅ Custom cursor overlay (RECOMMENDED)
+
 - Create a `<div>` positioned where cursor should be
 - Style it to be exactly `font-size` height
 - Hide native cursor with `caret-color: transparent`
@@ -46,6 +50,7 @@ CSS provides **no property** to control cursor height in a textarea. The browser
 ## Current Implementation
 
 We're using the **native browser cursor** with `line-height: 1.75`, which means:
+
 - ✅ Zero JavaScript overhead
 - ✅ Perfect cursor positioning (browser handles it)
 - ✅ Native accessibility (screen readers, etc.)
@@ -55,14 +60,18 @@ We're using the **native browser cursor** with `line-height: 1.75`, which means:
 ## Recommendations
 
 ### Option 1: Accept Tall Cursor (Current)
+
 **Status**: Implemented
+
 - Easiest solution
 - Zero performance cost
 - Standard browser behavior
 - Users are familiar with this from other web apps
 
 ### Option 2: Implement Custom Cursor Overlay
+
 **Status**: Not implemented (was removed earlier due to jank)
+
 - Would require:
   1. Calculate cursor position from `selectionStart`
   2. Create overlay div at that position
@@ -72,13 +81,16 @@ We're using the **native browser cursor** with `line-height: 1.75`, which means:
   6. Hide when textarea loses focus
 
 **Implementation considerations**:
+
 - Use `requestAnimationFrame` for smooth updates
 - Debounce rapid movements
 - Cache measurements to avoid layout thrashing
 - Use CSS `transform` for positioning (GPU-accelerated)
 
 ### Option 3: Reduce Line Height
+
 **Status**: Not recommended
+
 - Would make lines too cramped
 - Reduces readability
 - Not suitable for a document editor
@@ -86,6 +98,7 @@ We're using the **native browser cursor** with `line-height: 1.75`, which means:
 ## Test Coverage
 
 Created comprehensive test suite in `/e2e/wysiwyg-cursor-height.spec.ts`:
+
 - ✅ Verifies cursor is visible
 - ✅ Confirms font-size vs line-height measurements
 - ✅ Takes screenshots for visual regression testing

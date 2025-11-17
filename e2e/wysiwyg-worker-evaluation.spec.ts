@@ -26,7 +26,7 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		(page as any).__testLogs = logs;
 		(page as any).__testErrors = errors;
 
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 	});
 
 	test('should initialize Web Worker without errors', async ({ page }) => {
@@ -37,11 +37,16 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		const logs = (page as any).__testLogs;
 
 		// Check for worker errors
-		const workerErrors = errors.filter((e: string) => e.includes('[Worker]') || e.includes('[WorkerManager]'));
+		const workerErrors = errors.filter(
+			(e: string) => e.includes('[Worker]') || e.includes('[WorkerManager]')
+		);
 
 		if (workerErrors.length > 0) {
 			console.log('Worker errors found:', workerErrors);
-			console.log('All logs:', logs.filter((l: string) => l.includes('[Worker]') || l.includes('[WorkerManager]')));
+			console.log(
+				'All logs:',
+				logs.filter((l: string) => l.includes('[Worker]') || l.includes('[WorkerManager]'))
+			);
 		}
 
 		expect(workerErrors).toHaveLength(0);
@@ -59,9 +64,9 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		const logs = (page as any).__testLogs;
 
 		// Should see worker initialization logs
-		const hasWorkerInit = logs.some((l: string) =>
-			l.includes('CalcMark worker initialized') ||
-			l.includes('CalcMark WASM initialized')
+		const hasWorkerInit = logs.some(
+			(l: string) =>
+				l.includes('CalcMark worker initialized') || l.includes('CalcMark WASM initialized')
 		);
 
 		if (!hasWorkerInit) {
@@ -82,15 +87,15 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		const logs = (page as any).__testLogs;
 
 		// Should see evaluation complete log
-		const hasEvaluationComplete = logs.some((l: string) =>
-			l.includes('Evaluation complete') ||
-			l.includes('got results')
+		const hasEvaluationComplete = logs.some(
+			(l: string) => l.includes('Evaluation complete') || l.includes('got results')
 		);
 
 		if (!hasEvaluationComplete) {
-			console.log('Evaluation logs:', logs.filter((l: string) =>
-				l.includes('evaluat') || l.includes('result')
-			));
+			console.log(
+				'Evaluation logs:',
+				logs.filter((l: string) => l.includes('evaluat') || l.includes('result'))
+			);
 		}
 
 		expect(hasEvaluationComplete).toBe(true);
@@ -168,9 +173,8 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		const errors = (page as any).__testErrors;
 
 		// Should not have fatal errors (worker should handle gracefully)
-		const fatalErrors = errors.filter((e: string) =>
-			e.toLowerCase().includes('uncaught') ||
-			e.toLowerCase().includes('fatal')
+		const fatalErrors = errors.filter(
+			(e: string) => e.toLowerCase().includes('uncaught') || e.toLowerCase().includes('fatal')
 		);
 
 		expect(fatalErrors).toHaveLength(0);

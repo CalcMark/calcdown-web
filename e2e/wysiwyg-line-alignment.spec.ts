@@ -9,7 +9,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Line Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -200,7 +200,7 @@ test.describe('WYSIWYG Editor - Line Alignment', () => {
 		// Take screenshot showing cursor (red) against overlay (green background)
 		await page.screenshot({
 			path: 'test-results/cursor-overlay-alignment.png',
-			clip: await textarea.boundingBox() || undefined
+			clip: (await textarea.boundingBox()) || undefined
 		});
 
 		console.log('✓ Cursor alignment screenshot saved');

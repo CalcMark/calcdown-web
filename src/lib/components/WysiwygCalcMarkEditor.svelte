@@ -13,11 +13,7 @@
 	import { CursorManager } from '$lib/state/CursorManager.svelte';
 	import { USER_INPUT_DEBOUNCE_MS } from '$lib/constants';
 	import { renderLine, formatValue } from '$lib/utils/wysiwygRenderer';
-	import {
-		getCharacterOffsetFromClick,
-		getLineIndexFromY
-	} from '$lib/utils/cursorPosition';
-	import { onMount, flushSync } from 'svelte';
+	import { onMount } from 'svelte';
 	import LineHoverOverlay from './LineHoverOverlay.svelte';
 	import { getWorkerManager } from '$lib/client/calcmarkWorkerManager';
 
@@ -35,24 +31,28 @@
 
 	let rawText = $state(doc.getRawText());
 	let lines = $state(doc.getLines());
-	let isEvaluating = $state(false);
 
+	// Timer handles - using 'any' is standard for setTimeout/setInterval return values
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let debounceTimer: any = null;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let scrollTimer: any = null;
 
 	// Typing state - controls whether we show textarea or overlay
 	let isTyping = $state(false);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let typingTimer: any = null;
 
 	// Custom cursor state
 	// CRITICAL: Native caret is ALWAYS hidden (see .raw-textarea CSS)
 	// Custom cursor visibility is controlled by isTyping flag
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let customCursorTimer: any = null;
 	// Note: cursorPosition, cursorVisible, cursorBlinkInterval now managed by CursorManager
 
 	// Smooth transition state
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Used in error handler (line 413), linter doesn't detect catch/finally usage
 	let overlayOpacity = $state(1);
-	let previousLines = $state(doc.getLines());
 
 	/**
 	 * SYNCHRONIZATION FLAGS - Prevent race conditions and feedback loops
@@ -104,7 +104,16 @@
 
 			// Handle navigation keys - show cursor immediately
 			const handleNavigation = (event: KeyboardEvent) => {
-				const navigationKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'];
+				const navigationKeys = [
+					'ArrowUp',
+					'ArrowDown',
+					'ArrowLeft',
+					'ArrowRight',
+					'Home',
+					'End',
+					'PageUp',
+					'PageDown'
+				];
 
 				if (navigationKeys.includes(event.key)) {
 					// Navigation: show cursor immediately (no delay)
@@ -191,32 +200,6 @@
 	// === Keyboard and Selection Event Handlers ===
 
 	/**
-	 * Handle keyup events - determines if line should be recalculated based on key pressed.
-	 */
-	function handleKeyUp(event: KeyboardEvent) {
-		// Don't update custom cursor position while typing (custom cursor is hidden anyway)
-		if (isTyping) return;
-
-		// Navigation keys that change which line the cursor is on
-		const navigationKeys = ['ArrowUp', 'ArrowDown', 'Enter', 'Home', 'End', 'PageUp', 'PageDown'];
-
-		// Recalculate line number ONLY for navigation keys
-		const shouldRecalculateLine = navigationKeys.includes(event.key);
-		updateCursorPosition(shouldRecalculateLine);
-	}
-
-	/**
-	 * Handle selection changes (could be from keyboard or mouse).
-	 * We recalculate line number since this often happens after navigation.
-	 */
-	function handleSelectionChange() {
-		// Don't update custom cursor position while typing (custom cursor is hidden anyway)
-		if (isTyping) return;
-
-		updateCursorPosition(true);
-	}
-
-	/**
 	 * Handle user typing
 	 *
 	 * SIMPLE APPROACH: Show plain textarea while typing, overlay when idle.
@@ -261,19 +244,6 @@
 				isUpdatingFromUser = false;
 			});
 		}
-	}
-
-	// Handle cursor movement (clicks, arrow keys, etc.)
-	function handleCursorMove() {
-		// Briefly hide custom cursor during interaction
-		cursorManager.hide();
-		if (customCursorTimer) clearTimeout(customCursorTimer);
-
-		// Show custom cursor after interaction
-		customCursorTimer = setTimeout(() => {
-			cursorManager.show();
-			cursorManager.startBlink();
-		}, USER_INPUT_DEBOUNCE_MS);
 	}
 
 	// Track time of last user input to prevent render updates during active typing
@@ -343,7 +313,6 @@
 		}
 
 		console.log('[WYSIWYG] evaluateDocument: starting');
-		isEvaluating = true;
 		isUpdatingFromEvaluation = true;
 
 		// Store current cursor position
@@ -363,6 +332,7 @@
 			// overlayOpacity = 0.7;  // Removed - causes confusion during typing/deleting
 
 			// Track which lines are being updated to minimize re-renders
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity -- Local variable in function scope, not reactive state
 			const changedLineNumbers = new Set<number>();
 
 			// Update document state
@@ -378,17 +348,28 @@
 			// tokensByLine is built server-side with i+1, so it's 1-indexed
 			for (const [lineStr, tokens] of Object.entries(results.tokensByLine)) {
 				const serverLineNumber = Number(lineStr);
-				const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(serverLineNumber, true, offset);
+				const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(
+					serverLineNumber,
+					true,
+					offset
+				);
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any -- WASM worker returns dynamic token structures
 				doc.updateTokens(documentLineNumber, tokens as any[]);
 				changedLineNumbers.add(documentLineNumber);
 			}
 
 			// Update diagnostics
 			// IMPORTANT: validate() returns 0-indexed line numbers (comes directly from WASM)
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- WASM worker returns dynamic diagnostic structures
 			const adjustedDiagnostics: Record<number, any[]> = {};
 			for (const [lineStr, diags] of Object.entries(results.diagnostics)) {
 				const serverLineNumber = Number(lineStr);
-				const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(serverLineNumber, false, offset);
+				const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(
+					serverLineNumber,
+					false,
+					offset
+				);
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any -- WASM worker diagnostic structures are dynamic
 				adjustedDiagnostics[documentLineNumber] = diags as any[];
 				changedLineNumbers.add(documentLineNumber);
 				console.log(
@@ -401,11 +382,18 @@
 			doc.updateEvaluationResults(results.evaluationResults, results.variableContext, offset);
 			// Calculation results also change lines
 			for (const result of results.evaluationResults) {
-				const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(result.OriginalLine, true, offset);
+				const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(
+					result.OriginalLine,
+					true,
+					offset
+				);
 				changedLineNumbers.add(documentLineNumber);
 			}
 
-			console.log('[WYSIWYG] Changed lines:', Array.from(changedLineNumbers).sort((a, b) => a - b));
+			console.log(
+				'[WYSIWYG] Changed lines:',
+				Array.from(changedLineNumbers).sort((a, b) => a - b)
+			);
 
 			// CRITICAL: Schedule the DOM update using requestAnimationFrame
 			// This prevents dropped characters during fast typing by ensuring
@@ -427,17 +415,12 @@
 					textareaElement.selectionEnd = currentCursorPos;
 				}
 
-				// Update cursor visualization AFTER overlay updates
-				// Use requestAnimationFrame to ensure DOM has been updated
-				requestAnimationFrame(() => {
-					updateCursorPosition();
-				});
+				// Note: Cursor updates are now handled by cursorManager
 			});
 		} catch (error) {
 			console.error('Evaluation error:', error);
 			overlayOpacity = 1;
 		} finally {
-			isEvaluating = false;
 			isUpdatingFromEvaluation = false;
 		}
 	}
@@ -486,143 +469,6 @@
 	// Old functions removed - cursor position is automatically derived from textarea.selectionStart
 
 	// === Click-to-Position Mapping ===
-
-	let isDragging = $state(false);
-	let dragStartPos = $state<number | null>(null);
-
-	function handleTextareaMouseDown(event: MouseEvent) {
-		// Start tracking potential drag
-		isDragging = false;
-		if (textareaElement) {
-			dragStartPos = textareaElement.selectionStart;
-		}
-	}
-
-	function handleTextareaMouseMove(event: MouseEvent) {
-		// If mouse moved significantly, it's a drag
-		if (dragStartPos !== null && textareaElement) {
-			const currentPos = textareaElement.selectionStart;
-			if (Math.abs(currentPos - dragStartPos) > 0) {
-				isDragging = true;
-			}
-		}
-	}
-
-	function handleTextareaClick(event: MouseEvent) {
-		// Only use custom positioning if not dragging and no selection exists
-		if (!isDragging && textareaElement) {
-			const hasSelection = textareaElement.selectionStart !== textareaElement.selectionEnd;
-			if (!hasSelection) {
-				handleClickImpl(event);
-			}
-		}
-		isDragging = false;
-		dragStartPos = null;
-	}
-
-	function handleTextareaDoubleClick(event: MouseEvent) {
-		// Use our custom double-click word selection logic
-		handleDoubleClickImpl(event);
-	}
-
-	function handleOverlayKeyDown(event: KeyboardEvent) {
-		// Forward keyboard events to textarea
-		if (!textareaElement) return;
-		textareaElement.focus();
-	}
-
-	function handleOverlayClick(event: MouseEvent) {
-		handleClickImpl(event);
-	}
-
-	function handleOverlayDoubleClick(event: MouseEvent) {
-		handleDoubleClickImpl(event);
-	}
-
-	function handleClickImpl(event: MouseEvent) {
-		if (!overlayElement || !textareaElement) return;
-
-		const overlayRect = overlayElement.getBoundingClientRect();
-		const relativeY = event.clientY - overlayRect.top;
-		const lineIndex = getLineIndexFromY(relativeY, overlayElement.scrollTop, overlayElement);
-
-		const line = lines[lineIndex];
-		if (!line) return;
-
-		const lineElement = overlayElement.querySelector(`[data-line="${lineIndex}"]`);
-		if (!lineElement) return;
-
-		const offset = getCharacterOffsetFromClick(lineElement, event.clientX);
-		const absolutePosition = doc.getAbsolutePosition(lineIndex, offset);
-
-		// Use CursorManager to set position (single write point)
-		cursorManager.setPosition(absolutePosition);
-	}
-
-	function handleDoubleClickImpl(event: MouseEvent) {
-		if (!overlayElement || !textareaElement) return;
-
-		event.preventDefault();
-		event.stopPropagation();
-
-		const overlayRect = overlayElement.getBoundingClientRect();
-		const relativeY = event.clientY - overlayRect.top;
-		const lineIndex = getLineIndexFromY(relativeY, overlayElement.scrollTop, overlayElement);
-		const line = lines[lineIndex];
-		if (!line) return;
-
-		const lineElement = overlayElement.querySelector(`[data-line="${lineIndex}"]`);
-		if (!lineElement) return;
-
-		const offset = getCharacterOffsetFromClick(lineElement, event.clientX);
-
-		// First, try to select by token if available
-		if (line.tokens && line.tokens.length > 0) {
-			for (const token of line.tokens) {
-				const tokenText = doc.getTokenText(lineIndex, token);
-				const tokenStart = line.rawContent.indexOf(tokenText);
-				const tokenEnd = tokenStart + tokenText.length;
-
-				if (offset >= tokenStart && offset <= tokenEnd) {
-					// Select the entire token
-					const absoluteStart = doc.getAbsolutePosition(lineIndex, tokenStart);
-					const absoluteEnd = doc.getAbsolutePosition(lineIndex, tokenEnd);
-
-					// Use CursorManager to set selection
-					cursorManager.setSelection(absoluteStart, absoluteEnd);
-					return;
-				}
-			}
-		}
-
-		// Fallback: select word using identifier/number pattern
-		const lineText = line.rawContent;
-
-		// Find all word-like tokens (identifiers, numbers, operators)
-		const wordPattern = /[a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|\S/g;
-		let match;
-		const words: Array<{ start: number; end: number; text: string }> = [];
-
-		while ((match = wordPattern.exec(lineText)) !== null) {
-			words.push({
-				start: match.index,
-				end: match.index + match[0].length,
-				text: match[0]
-			});
-		}
-
-		// Find word containing the offset
-		for (const word of words) {
-			if (offset >= word.start && offset <= word.end) {
-				const absoluteStart = doc.getAbsolutePosition(lineIndex, word.start);
-				const absoluteEnd = doc.getAbsolutePosition(lineIndex, word.end);
-
-				// Use CursorManager to set selection
-				cursorManager.setSelection(absoluteStart, absoluteEnd);
-				return;
-			}
-		}
-	}
 </script>
 
 <div class="wysiwyg-container" bind:this={containerElement}>
@@ -646,17 +492,16 @@
 		></textarea>
 
 		<!-- Rendered overlay (always visible, updates incrementally) -->
-		<div
-			bind:this={overlayElement}
-			class="rendered-overlay"
-		>
+		<div bind:this={overlayElement} class="rendered-overlay">
 			{#each lines as line (line.lineNumber)}
 				<div
 					class="line"
+					role="presentation"
 					data-line={line.lineNumber}
 					onmouseenter={() => lineContext.setHoveredLine(line.lineNumber)}
 					onmouseleave={() => lineContext.setHoveredLine(null)}
 				>
+					<!-- renderLine() returns sanitized HTML with syntax highlighting - all content is escaped via escapeHtml() -->
 					{@html renderLine(line, doc)}
 				</div>
 			{/each}
@@ -678,6 +523,7 @@
 			{#each lines as line (line.lineNumber)}
 				<div
 					class="gutter-line"
+					role="presentation"
 					data-line={line.lineNumber}
 					class:has-result={!!line.calculationResult}
 					onmouseenter={() => lineContext.setHoveredLine(line.lineNumber)}
@@ -697,7 +543,7 @@
 	</div>
 
 	<!-- Hover effects overlay - spans entire container (editor + gutter) -->
-	<LineHoverOverlay lineContext={lineContext} {overlayElement} />
+	<LineHoverOverlay {lineContext} {overlayElement} />
 </div>
 
 <style>
@@ -764,7 +610,7 @@
 		border: none;
 		outline: none;
 		resize: none;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family: var(--font-family);
 		font-size: var(--editor-font-size);
 		/* CRITICAL: line-height MUST match overlay for cursor/text alignment */
 		/* Native cursor height = line-height (cannot be changed via CSS) */
@@ -808,7 +654,7 @@
 		/* Allow pointer events to pass through to textarea above */
 		pointer-events: none;
 		z-index: 1; /* Below textarea so textarea receives all events */
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family: var(--font-family);
 		font-size: var(--editor-font-size);
 		line-height: var(--editor-line-height);
 		color: var(--color-text);
@@ -821,12 +667,6 @@
 		/* Smooth fade in/out */
 		opacity: 1;
 		transition: opacity 0.15s ease;
-	}
-
-	/* Hide overlay while typing */
-	.rendered-overlay.hidden {
-		opacity: 0;
-		pointer-events: none;
 	}
 
 	.line {
@@ -862,11 +702,7 @@
 	.gutter {
 		/* Fixed width, fills height of parent */
 		flex-shrink: 0;
-		width: clamp(
-			var(--gutter-min-width),
-			var(--gutter-preferred-width),
-			var(--gutter-max-width)
-		);
+		width: clamp(var(--gutter-min-width), var(--gutter-preferred-width), var(--gutter-max-width));
 		position: relative;
 		background: var(--color-bg-gutter);
 		border-left: 1px solid var(--color-border);
@@ -919,8 +755,9 @@
 	.gutter-result {
 		color: var(--color-primary);
 		font-weight: 600;
-		font-size: calc(var(--editor-font-size) * 0.875); /* 87.5% of editor font size */
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		/* Match editor font size exactly - Roboto has good metrics for alignment */
+		font-size: var(--editor-font-size);
+		font-family: var(--font-family);
 		animation: fadeIn var(--animation-duration) ease-in;
 		padding-inline: var(--spacing-sm);
 		/* CRITICAL: Zero vertical padding to prevent misalignment with overlay lines */
@@ -936,32 +773,6 @@
 		line-height: var(--editor-line-height);
 	}
 
-	/* Hover overlay - sits on top of entire container */
-	.hover-overlay {
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: calc(var(--editor-font-size) * var(--editor-line-height));
-		pointer-events: none;
-		z-index: 1000;
-	}
-
-	.hover-line {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 0.25rem;
-		height: 0.0625rem; /* 1px */
-		background: repeating-linear-gradient(
-			to right,
-			var(--color-primary) 0,
-			var(--color-primary) 0.25rem,
-			transparent 0.25rem,
-			transparent 0.5rem
-		);
-		opacity: 0.5;
-	}
-
 	/* Make gutter result more visible on hover */
 	.gutter-line.has-result:hover .gutter-result {
 		/* background removed for cleaner appearance */
@@ -970,7 +781,7 @@
 	}
 
 	:global(.calculation) {
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family: var(--font-family);
 		/* background removed for cleaner appearance */
 		border-radius: var(--border-radius-sm);
 		display: inline;

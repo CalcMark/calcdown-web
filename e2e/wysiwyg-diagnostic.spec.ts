@@ -6,9 +6,11 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Diagnostic', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('should capture and log the HTML structure of rendered lines', async ({ page }) => {
@@ -92,7 +94,7 @@ test.describe('WYSIWYG Editor - Diagnostic', () => {
 		const lines = overlay.locator('.line');
 
 		console.log('\n=== LINE CLASSIFICATIONS ===');
-		for (let i = 0; i < await lines.count(); i++) {
+		for (let i = 0; i < (await lines.count()); i++) {
 			const line = lines.nth(i);
 			const html = await line.innerHTML();
 			const text = await line.textContent();

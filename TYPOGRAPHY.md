@@ -85,9 +85,9 @@ To use different weight values, update the CSS variables in `typography.css`:
 
 ```css
 :root {
-	--font-weight-light: 200;    /* Example: Extra light */
-	--font-weight-regular: 400;   /* Keep regular */
-	--font-weight-bold: 800;      /* Example: Extra bold */
+	--font-weight-light: 200; /* Example: Extra light */
+	--font-weight-regular: 400; /* Keep regular */
+	--font-weight-bold: 800; /* Example: Extra bold */
 }
 ```
 
@@ -132,7 +132,9 @@ To add locale-specific fonts (e.g., Japanese, Chinese):
 
 ```css
 :root {
-	--font-family: 'Roboto', 'Noto Sans JP', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--font-family:
+		'Roboto', 'Noto Sans JP', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+		sans-serif;
 }
 ```
 
@@ -167,7 +169,9 @@ For code blocks or calculator expressions requiring monospace fonts, create a se
 }
 
 /* Apply to code elements */
-code, pre, .code-block {
+code,
+pre,
+.code-block {
 	font-family: var(--font-family-mono);
 }
 ```

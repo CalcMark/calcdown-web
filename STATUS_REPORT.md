@@ -3,6 +3,7 @@
 ## Executive Summary
 
 The WYSIWYG editor has **CRITICAL, FLAKY bugs** causing text corruption and cursor issues during typing. These bugs are:
+
 - **Reproducible** in automated tests (flaky)
 - **User-reported** in Safari (consistent but hard to reproduce)
 - **Timing-dependent** (race conditions)
@@ -17,21 +18,25 @@ The WYSIWYG editor has **CRITICAL, FLAKY bugs** causing text corruption and curs
 ## Bugs Confirmed
 
 ### 1. Character Reordering (CONFIRMED, REPRODUCED)
+
 **Evidence:** Test output shows "salary" → "slryaa"
 **Frequency:** Flaky (timing-dependent)
 **Root Cause:** Race condition during typing + evaluation
 
 ### 2. Phantom Spaces (USER REPORTED, Safari)
+
 **Evidence:** User saw "$500,000" → "$500, 000"
 **Frequency:** Flaky in Safari
 **Root Cause:** Same race condition as #1
 
 ### 3. Character Deletion After Cursor (USER REPORTED, Safari)
+
 **Evidence:** "monthly_salary" → "mo_salary" (y deleted)
 **Frequency:** Cannot reliably reproduce
 **Root Cause:** Same race condition as #1
 
 ### 4. Cursor Lag (USER REPORTED, Safari)
+
 **Evidence:** User reports cursor "catches up after couple seconds"
 **Frequency:** Consistent in Safari
 **Root Cause:** updateCursorPosition() may be slow, or visual cursor update delayed
@@ -79,6 +84,7 @@ Character corruption
 ### Why It's Flaky
 
 The bug only manifests when:
+
 - Typing happens DURING Svelte's reactivity update
 - Evaluation is processing (adds more state changes)
 - Browser is under load (slow rendering)
@@ -87,6 +93,7 @@ The bug only manifests when:
 ### Why Removing `bind:value` Made It Worse
 
 Without `bind:value`:
+
 - Textarea has NO initial value
 - No two-way sync between state and DOM
 - **Worse corruption:** "bonus" → "sunob" (reversed!)
@@ -113,6 +120,7 @@ The problem is that `handleInput()` updates `rawText`, which triggers Svelte rea
 ### Solution: One-Way Data Flow
 
 **Current (BROKEN):**
+
 ```typescript
 // handleInput reads AND writes to rawText
 function handleInput() {
@@ -127,24 +135,25 @@ function handleInput() {
 ```
 
 **Proposed Fix:**
+
 ```typescript
 // Internal state for textarea, separate from reactive state
 let textareaText = $state('');
 
 function handleInput() {
-    if (!textareaElement) return;
+	if (!textareaElement) return;
 
-    // Update internal state (NO reactive bindings)
-    textareaText = textareaElement.value;
+	// Update internal state (NO reactive bindings)
+	textareaText = textareaElement.value;
 
-    // Update document model
-    doc.updateRawText(textareaText);
+	// Update document model
+	doc.updateRawText(textareaText);
 
-    // Update cursor immediately
-    updateCursorPosition();
+	// Update cursor immediately
+	updateCursorPosition();
 
-    // Schedule evaluation
-    scheduleEvaluation();
+	// Schedule evaluation
+	scheduleEvaluation();
 }
 ```
 
@@ -170,12 +179,14 @@ function handleInput() {
 ## Implementation Plan
 
 ### Phase 1: Fix the Race Condition
+
 - [ ] Remove `bind:value={rawText}`
 - [ ] Add `value={initialText}` for SSR hydration
 - [ ] Ensure `handleInput()` ONLY reads from textarea
 - [ ] Verify NO code path writes to `textarea.value` after mount
 
 ### Phase 2: Test Thoroughly
+
 - [ ] Run all existing tests
 - [ ] Add new flaky-bug detection tests
 - [ ] Run tests in WebKit (Safari engine)
@@ -183,6 +194,7 @@ function handleInput() {
 - [ ] Test during active evaluation
 
 ### Phase 3: Safari-Specific Testing
+
 - [ ] Test on actual Safari browser
 - [ ] Test cursor lag
 - [ ] Test phantom spaces
@@ -193,6 +205,7 @@ function handleInput() {
 ## Test Coverage
 
 ### Existing Tests (27 tests)
+
 - ✅ Cursor position after every character
 - ✅ No phantom characters
 - ✅ Rapid typing fidelity
@@ -201,6 +214,7 @@ function handleInput() {
 - ❌ **1 flaky test** (character reordering)
 
 ### New Tests Needed
+
 - Safari-specific timing tests (created: `wysiwyg-safari-timing.spec.ts`)
 - WebKit browser testing
 - Stress testing with rapid typing
@@ -254,16 +268,19 @@ Got:      " = $500sunob"
 ##Recommendations
 
 ### Short Term
+
 - Keep `bind:value` for now (lesser of two evils)
 - Add more logging to catch character corruption
 - Run tests in WebKit to reproduce Safari bugs
 
 ### Medium Term
+
 - Refactor to eliminate `bind:value` properly
 - Use uncontrolled textarea with careful state management
 - Add comprehensive timing tests
 
 ### Long Term
+
 - Consider alternative WYSIWYG architectures (ContentEditable, ProseMirror, etc.)
 - Performance profiling of cursor position calculation
 - Safari-specific optimizations

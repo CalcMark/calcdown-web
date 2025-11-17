@@ -3,13 +3,15 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
 
 test.describe('WYSIWYG CalcMark Editor', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		// Wait for editor to be visible
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		// Wait for initial evaluation to complete
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {
-			// It's okay if it's already hidden
-		});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {
+				// It's okay if it's already hidden
+			});
 	});
 
 	test('should render editor with textarea and overlay', async ({ page }) => {
@@ -92,9 +94,11 @@ test.describe('WYSIWYG CalcMark Editor', () => {
 		const indicator = page.locator('.evaluating-indicator');
 
 		// Wait for it to disappear
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 3000 }).catch(() => {
-			// Already hidden
-		});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 3000 })
+			.catch(() => {
+				// Already hidden
+			});
 
 		// Should eventually be hidden
 		await expect(indicator).not.toBeVisible();

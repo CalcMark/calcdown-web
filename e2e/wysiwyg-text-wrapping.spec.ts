@@ -8,16 +8,19 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Text Wrapping', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('long markdown lines should wrap at word boundaries', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create a very long markdown line
-		const longText = 'This is a simple budget calculator written in CalcMark that should wrap at word boundaries when the line extends beyond the visible editing canvas instead of scrolling horizontally.';
+		const longText =
+			'This is a simple budget calculator written in CalcMark that should wrap at word boundaries when the line extends beyond the visible editing canvas instead of scrolling horizontally.';
 
 		await textarea.clear();
 		await textarea.fill(longText);
@@ -25,8 +28,12 @@ test.describe('WYSIWYG Editor - Text Wrapping', () => {
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 500);
 
 		// Check that the textarea doesn't have horizontal scrollbar
-		const textareaScrollWidth = await textarea.evaluate((el: HTMLTextAreaElement) => el.scrollWidth);
-		const textareaClientWidth = await textarea.evaluate((el: HTMLTextAreaElement) => el.clientWidth);
+		const textareaScrollWidth = await textarea.evaluate(
+			(el: HTMLTextAreaElement) => el.scrollWidth
+		);
+		const textareaClientWidth = await textarea.evaluate(
+			(el: HTMLTextAreaElement) => el.clientWidth
+		);
 
 		// scrollWidth should be approximately equal to clientWidth (allowing small tolerance for padding)
 		expect(textareaScrollWidth).toBeLessThanOrEqual(textareaClientWidth + 100);
@@ -44,7 +51,8 @@ test.describe('WYSIWYG Editor - Text Wrapping', () => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create a long calculation with many identifiers
-		const longCalc = 'total_annual_budget = monthly_rent + monthly_utilities + monthly_food + monthly_transportation + monthly_entertainment + monthly_savings + monthly_insurance';
+		const longCalc =
+			'total_annual_budget = monthly_rent + monthly_utilities + monthly_food + monthly_transportation + monthly_entertainment + monthly_savings + monthly_insurance';
 
 		await textarea.clear();
 		await textarea.fill(longCalc);
@@ -52,8 +60,12 @@ test.describe('WYSIWYG Editor - Text Wrapping', () => {
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1000);
 
 		// Check that the textarea doesn't scroll horizontally
-		const textareaScrollWidth = await textarea.evaluate((el: HTMLTextAreaElement) => el.scrollWidth);
-		const textareaClientWidth = await textarea.evaluate((el: HTMLTextAreaElement) => el.clientWidth);
+		const textareaScrollWidth = await textarea.evaluate(
+			(el: HTMLTextAreaElement) => el.scrollWidth
+		);
+		const textareaClientWidth = await textarea.evaluate(
+			(el: HTMLTextAreaElement) => el.clientWidth
+		);
 
 		expect(textareaScrollWidth).toBeLessThanOrEqual(textareaClientWidth + 100);
 
@@ -72,7 +84,8 @@ test.describe('WYSIWYG Editor - Text Wrapping', () => {
 		await textarea.click();
 
 		// Type a long line character by character
-		const longText = 'monthly_salary = $5000 and this is a very long line that extends beyond the visible canvas';
+		const longText =
+			'monthly_salary = $5000 and this is a very long line that extends beyond the visible canvas';
 
 		for (const char of longText) {
 			await textarea.press(char === ' ' ? 'Space' : char);
@@ -94,7 +107,8 @@ test.describe('WYSIWYG Editor - Text Wrapping', () => {
 		await textarea.clear();
 
 		// Type a long line that will wrap
-		const longText = 'This is a very long markdown line that will definitely wrap to multiple lines in the editor view and we want to make sure the cursor stays visible';
+		const longText =
+			'This is a very long markdown line that will definitely wrap to multiple lines in the editor view and we want to make sure the cursor stays visible';
 		await textarea.fill(longText);
 
 		await page.waitForTimeout(500);
@@ -130,7 +144,9 @@ test.describe('WYSIWYG Editor - Text Wrapping', () => {
 
 		// Create content with a long line followed by another line
 		await textarea.clear();
-		await textarea.fill('This is a very long first line that will wrap to multiple visual lines when rendered in the editor because it contains so much text.\nSecond line = 100');
+		await textarea.fill(
+			'This is a very long first line that will wrap to multiple visual lines when rendered in the editor because it contains so much text.\nSecond line = 100'
+		);
 
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1000);
 

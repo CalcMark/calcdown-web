@@ -40,7 +40,9 @@ describe('EditableBlock - Focus Retention', () => {
 		});
 
 		// Find the textarea
-		const textarea = screen.getByPlaceholderText('Type markdown or calculations...') as HTMLTextAreaElement;
+		const textarea = screen.getByPlaceholderText(
+			'Type markdown or calculations...'
+		) as HTMLTextAreaElement;
 		expect(textarea).toBeDefined();
 
 		// Focus the textarea
@@ -132,5 +134,4 @@ describe('EditableBlock - Focus Retention', () => {
 		// Focus should STILL be on the textarea after re-render
 		expect(document.activeElement).toBe(textarea);
 	});
-
 });

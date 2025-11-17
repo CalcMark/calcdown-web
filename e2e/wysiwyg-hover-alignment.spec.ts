@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Hover Overlay Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForTimeout(1000);
 	});
 

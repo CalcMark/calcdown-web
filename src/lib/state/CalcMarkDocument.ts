@@ -148,7 +148,9 @@ export class CalcMarkDocument {
 
 	// === Classification (from client WASM) ===
 
-	updateClassifications(classifications: Array<{ lineType: 'MARKDOWN' | 'CALCULATION' | 'BLANK'; line: string }>): void {
+	updateClassifications(
+		classifications: Array<{ lineType: 'MARKDOWN' | 'CALCULATION' | 'BLANK'; line: string }>
+	): void {
 		classifications.forEach((classification, index) => {
 			if (this.state.lines[index]) {
 				const line = this.state.lines[index];
@@ -199,10 +201,14 @@ export class CalcMarkDocument {
 	 * @param viewportOffset - First line number in document (0-indexed) that corresponds to line 1 in viewport
 	 * @returns Document line number (0-indexed)
 	 */
-	static serverLineToDocumentLine(serverLineNumber: number, isOneIndexed: boolean, viewportOffset: number): number {
+	static serverLineToDocumentLine(
+		serverLineNumber: number,
+		isOneIndexed: boolean,
+		viewportOffset: number
+	): number {
 		return isOneIndexed
-			? serverLineNumber - 1 + viewportOffset  // Convert 1-indexed to 0-indexed, then add offset
-			: serverLineNumber + viewportOffset;      // Already 0-indexed, just add offset
+			? serverLineNumber - 1 + viewportOffset // Convert 1-indexed to 0-indexed, then add offset
+			: serverLineNumber + viewportOffset; // Already 0-indexed, just add offset
 	}
 
 	updateEvaluationResults(
@@ -221,7 +227,11 @@ export class CalcMarkDocument {
 		// Update with new results
 		// NOTE: evaluateDocument() returns 1-indexed line numbers
 		results.forEach((result) => {
-			const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(result.OriginalLine, true, offset);
+			const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(
+				result.OriginalLine,
+				true,
+				offset
+			);
 			if (this.state.lines[documentLineNumber]) {
 				const line = this.state.lines[documentLineNumber];
 				const oldValue = line.calculationResult?.Value?.Value;
@@ -272,7 +282,9 @@ export class CalcMarkDocument {
 
 	getTextForEvaluation(): { text: string; offset: number } {
 		const range = this.getEvaluationRange();
-		const viewportLines = this.state.lines.slice(range.start, range.end + 1).map((l) => l.rawContent);
+		const viewportLines = this.state.lines
+			.slice(range.start, range.end + 1)
+			.map((l) => l.rawContent);
 
 		return {
 			text: viewportLines.join('\n'),
@@ -299,7 +311,10 @@ export class CalcMarkDocument {
 	 *                          This prevents cursor jumping when typing regular characters.
 	 * @returns The current cursor line and offset
 	 */
-	updateCursorFromAbsolutePosition(absolutePosition: number, recalculateLine: boolean = true): { line: number; offset: number } {
+	updateCursorFromAbsolutePosition(
+		absolutePosition: number,
+		recalculateLine: boolean = true
+	): { line: number; offset: number } {
 		let line: number;
 		let offset: number;
 
@@ -348,7 +363,9 @@ export class CalcMarkDocument {
 	 * Convert token positions from runes (Go) to UTF-16 (JavaScript) for a specific line.
 	 * This is needed when rendering tokens with correct positions for emoji and international characters.
 	 */
-	getTokenUtf16Positions(lineNumber: number): Array<{ type: string; value: string; start: number; end: number }> | undefined {
+	getTokenUtf16Positions(
+		lineNumber: number
+	): Array<{ type: string; value: string; start: number; end: number }> | undefined {
 		const line = this.state.lines[lineNumber];
 		if (!line || !line.tokens) return undefined;
 

@@ -66,7 +66,7 @@ export function formatNumber(num: number): string {
  */
 export function renderMarkdownLine(content: string): string {
 	if (content.trim() === '') return '&nbsp;'; // Empty line
-	return marked.parseInline(content);
+	return marked.parseInline(content) as string;
 }
 
 /**
@@ -113,7 +113,7 @@ export function renderCalculationLine(line: Line, doc: CalcMarkDocument): string
 		if (currentPos < lineText.length) {
 			html += escapeHtml(lineText.substring(currentPos));
 		}
-	} else{
+	} else {
 		// No tokens yet, show raw
 		html += escapeHtml(lineText);
 	}

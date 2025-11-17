@@ -19,7 +19,7 @@ test.describe('WYSIWYG Editor - Newline Cursor Bug', () => {
 			console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
 		});
 
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});

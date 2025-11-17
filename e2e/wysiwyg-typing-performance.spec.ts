@@ -7,9 +7,11 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Typing Performance', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('should preserve syntax highlighting while typing on existing lines', async ({ page }) => {
@@ -99,7 +101,10 @@ test.describe('WYSIWYG Editor - Typing Performance', () => {
 		await page.keyboard.type('6000');
 
 		// While typing, the gutter result should STILL be visible (not cleared)
-		const gutterWhileTyping = await gutterLine3.locator('.gutter-result').isVisible().catch(() => false);
+		const gutterWhileTyping = await gutterLine3
+			.locator('.gutter-result')
+			.isVisible()
+			.catch(() => false);
 		console.log('[TEST] Gutter visible while typing:', gutterWhileTyping);
 		expect(gutterWhileTyping).toBe(true);
 

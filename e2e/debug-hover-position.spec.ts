@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('debug hover overlay position', async ({ page }) => {
-	await page.goto('/wysiwyg');
+	await page.goto('/edit');
 	await page.waitForTimeout(1000);
 
 	// First, let's check what line we're actually looking at
@@ -9,15 +9,18 @@ test('debug hover overlay position', async ({ page }) => {
 	console.log('Line 6 content:', lineContent);
 
 	// Get measurements BEFORE hover
-	const lineInfo = await page.locator('[data-line="6"]').first().evaluate((el) => {
-		const rect = el.getBoundingClientRect();
-		return {
-			top: rect.top,
-			left: rect.left,
-			height: rect.height,
-			className: el.className
-		};
-	});
+	const lineInfo = await page
+		.locator('[data-line="6"]')
+		.first()
+		.evaluate((el) => {
+			const rect = el.getBoundingClientRect();
+			return {
+				top: rect.top,
+				left: rect.left,
+				height: rect.height,
+				className: el.className
+			};
+		});
 
 	console.log('Line element (data-line="6") BEFORE hover:', lineInfo);
 
@@ -41,13 +44,16 @@ test('debug hover overlay position', async ({ page }) => {
 	await page.waitForTimeout(500);
 
 	// Check measurements AFTER hover
-	const lineInfoAfter = await page.locator('[data-line="6"]').first().evaluate((el) => {
-		const rect = el.getBoundingClientRect();
-		return {
-			top: rect.top,
-			left: rect.left
-		};
-	});
+	const lineInfoAfter = await page
+		.locator('[data-line="6"]')
+		.first()
+		.evaluate((el) => {
+			const rect = el.getBoundingClientRect();
+			return {
+				top: rect.top,
+				left: rect.left
+			};
+		});
 	console.log('Line element (data-line="6") AFTER hover:', lineInfoAfter);
 
 	// Check if hover overlay exists

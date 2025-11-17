@@ -34,10 +34,7 @@ export function findPreviousBlock(blocks: Block[], currentBlockId: string): stri
 /**
  * Navigate to next block (TAB behavior)
  */
-export function navigateToNextBlock(
-	blocks: Block[],
-	currentBlockId: string
-): NavigationResult {
+export function navigateToNextBlock(blocks: Block[], currentBlockId: string): NavigationResult {
 	const nextBlockId = findNextBlock(blocks, currentBlockId);
 	return {
 		nextBlockId,
@@ -48,10 +45,7 @@ export function navigateToNextBlock(
 /**
  * Navigate to previous block (SHIFT+TAB behavior)
  */
-export function navigateToPreviousBlock(
-	blocks: Block[],
-	currentBlockId: string
-): NavigationResult {
+export function navigateToPreviousBlock(blocks: Block[], currentBlockId: string): NavigationResult {
 	const previousBlockId = findPreviousBlock(blocks, currentBlockId);
 	return {
 		nextBlockId: previousBlockId,

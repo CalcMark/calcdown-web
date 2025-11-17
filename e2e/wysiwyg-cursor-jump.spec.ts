@@ -11,7 +11,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Cursor Jump Bug', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -59,7 +59,9 @@ test.describe('WYSIWYG Editor - Cursor Jump Bug', () => {
 		expect(cursorPos).not.toBe(text.length); // NOT at end!
 	});
 
-	test('typing multiple characters mid-line should keep cursor at insertion point', async ({ page }) => {
+	test('typing multiple characters mid-line should keep cursor at insertion point', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.clear();

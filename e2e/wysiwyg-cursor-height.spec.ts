@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('WYSIWYG Editor - Cursor Height', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -60,7 +60,7 @@ test.describe('WYSIWYG Editor - Cursor Height', () => {
 		// Take a screenshot to visually verify cursor height
 		await page.screenshot({
 			path: 'test-results/cursor-height-default-font.png',
-			clip: await textarea.boundingBox() || undefined
+			clip: (await textarea.boundingBox()) || undefined
 		});
 
 		// Get font metrics
@@ -114,7 +114,7 @@ test.describe('WYSIWYG Editor - Cursor Height', () => {
 		await textarea.click();
 		await page.screenshot({
 			path: 'test-results/cursor-height-large-font.png',
-			clip: await textarea.boundingBox() || undefined
+			clip: (await textarea.boundingBox()) || undefined
 		});
 	});
 
@@ -133,7 +133,7 @@ test.describe('WYSIWYG Editor - Cursor Height', () => {
 		// Take screenshot showing cursor next to character
 		await page.screenshot({
 			path: 'test-results/cursor-next-to-character.png',
-			clip: await textarea.boundingBox() || undefined
+			clip: (await textarea.boundingBox()) || undefined
 		});
 
 		// The visual test here is: cursor should be same height as the letter 'A'
@@ -162,7 +162,7 @@ test.describe('WYSIWYG Editor - Cursor Height', () => {
 		// Screenshot showing cursor at different line positions
 		await page.screenshot({
 			path: 'test-results/cursor-multiline-position.png',
-			clip: await textarea.boundingBox() || undefined
+			clip: (await textarea.boundingBox()) || undefined
 		});
 
 		// Cursor height should be consistent regardless of which line it's on
@@ -229,7 +229,7 @@ test.describe('WYSIWYG Editor - Cursor Height', () => {
 		// Take screenshot for visual inspection
 		await page.screenshot({
 			path: 'test-results/cursor-height-regression-check.png',
-			clip: await textarea.boundingBox() || undefined
+			clip: (await textarea.boundingBox()) || undefined
 		});
 
 		// Visual assertion instructions logged

@@ -14,7 +14,7 @@ test.describe('WYSIWYG Editor - Console Logs', () => {
 			}
 		});
 
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 
 		// Wait for initial evaluation and diagnostic mapping
@@ -27,7 +27,9 @@ test.describe('WYSIWYG Editor - Console Logs', () => {
 		console.log('============================\n');
 
 		// Filter for diagnostic mapping logs
-		const diagnosticLogs = consoleLogs.filter((log) => log.includes('[WYSIWYG] Diagnostic mapping'));
+		const diagnosticLogs = consoleLogs.filter((log) =>
+			log.includes('[WYSIWYG] Diagnostic mapping')
+		);
 
 		console.log('\n=== DIAGNOSTIC MAPPING LOGS ===');
 		diagnosticLogs.forEach((log) => {

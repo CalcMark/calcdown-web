@@ -32,12 +32,7 @@ export function getTokenCategory(tokenType: string): TokenCategory {
 	const type = tokenType.toUpperCase();
 
 	// Literals - values
-	if (
-		type === 'NUMBER' ||
-		type === 'CURRENCY' ||
-		type === 'QUANTITY' ||
-		type === 'BOOLEAN'
-	) {
+	if (type === 'NUMBER' || type === 'CURRENCY' || type === 'QUANTITY' || type === 'BOOLEAN') {
 		return 'literal';
 	}
 
@@ -89,11 +84,7 @@ export function getTokenCategory(tokenType: string): TokenCategory {
 	}
 
 	// Punctuation - grouping and separators
-	if (
-		type === 'LPAREN' ||
-		type === 'RPAREN' ||
-		type === 'COMMA'
-	) {
+	if (type === 'LPAREN' || type === 'RPAREN' || type === 'COMMA') {
 		return 'punctuation';
 	}
 

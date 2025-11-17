@@ -3,6 +3,7 @@
 ## The Problem
 
 Current architecture:
+
 ```
 User types → 150ms debounce → 100-300ms network → server WASM → re-render
 Total latency: 250-450ms (causes jank, dropped characters, interruptions)
@@ -13,6 +14,7 @@ Total latency: 250-450ms (causes jank, dropped characters, interruptions)
 **Run CalcMark WASM in a Web Worker on the client.**
 
 New architecture:
+
 ```
 User types → 150ms debounce → <5ms Web Worker → re-render
 Total latency: ~155ms (buttery smooth)
@@ -27,6 +29,7 @@ Total latency: ~155ms (buttery smooth)
 ## Changes Needed to WysiwygCalcMarkEditor.svelte
 
 ### Before (lines 310-316):
+
 ```typescript
 const response = await fetch('/api/process', {
 	method: 'POST',
@@ -38,6 +41,7 @@ const results = await response.json();
 ```
 
 ### After:
+
 ```typescript
 import { getWorkerManager } from '$lib/client/calcmarkWorkerManager';
 

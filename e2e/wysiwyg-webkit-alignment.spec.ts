@@ -8,13 +8,16 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('WYSIWYG Editor - WebKit Vertical Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		// Wait for initial evaluation
 		await page.waitForTimeout(2000);
 	});
 
-	test('cursor vertical position should match line height across all lines', async ({ page, browserName }) => {
+	test('cursor vertical position should match line height across all lines', async ({
+		page,
+		browserName
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 		const overlay = page.locator('.rendered-overlay');
 
@@ -50,7 +53,7 @@ test.describe('WYSIWYG Editor - WebKit Vertical Alignment', () => {
 
 			// Get the actual line element
 			const lineElement = overlay.locator(`[data-line="${targetLine}"]`);
-			const lineExists = await lineElement.count() > 0;
+			const lineExists = (await lineElement.count()) > 0;
 
 			if (lineExists) {
 				const lineRect = await lineElement.boundingBox();
@@ -134,13 +137,18 @@ test.describe('WYSIWYG Editor - WebKit Vertical Alignment', () => {
 		const maxHeight = Math.max(...heights);
 		const heightVariation = maxHeight - minHeight;
 
-		console.log(`[${browserName}] Line height variation: ${heightVariation}px (min: ${minHeight}, max: ${maxHeight})`);
+		console.log(
+			`[${browserName}] Line height variation: ${heightVariation}px (min: ${minHeight}, max: ${maxHeight})`
+		);
 
 		// Height variation should be minimal (allow 1px for rounding)
 		expect(heightVariation).toBeLessThanOrEqual(1);
 	});
 
-	test('computed line height should match CSS specification in WebKit', async ({ page, browserName }) => {
+	test('computed line height should match CSS specification in WebKit', async ({
+		page,
+		browserName
+	}) => {
 		const overlay = page.locator('.rendered-overlay');
 
 		// Get CSS variables and computed styles
@@ -172,7 +180,10 @@ test.describe('WYSIWYG Editor - WebKit Vertical Alignment', () => {
 		expect(ratioDifference).toBeLessThan(0.1); // Allow 10% tolerance for browser differences
 	});
 
-	test('textarea and overlay should have identical line heights in WebKit', async ({ page, browserName }) => {
+	test('textarea and overlay should have identical line heights in WebKit', async ({
+		page,
+		browserName
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 		const overlay = page.locator('.rendered-overlay');
 

@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG - No Flashing on Unchanged Lines', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');
@@ -160,7 +160,9 @@ test.describe('WYSIWYG - No Flashing on Unchanged Lines', () => {
 		await page.waitForTimeout(300);
 
 		// Store a reference to line 3's DOM element
-		const line3DataLine = await page.locator('.rendered-overlay .line[data-line="2"]').getAttribute('data-line');
+		const line3DataLine = await page
+			.locator('.rendered-overlay .line[data-line="2"]')
+			.getAttribute('data-line');
 		expect(line3DataLine).toBe('2');
 
 		// Edit line 1
@@ -174,7 +176,9 @@ test.describe('WYSIWYG - No Flashing on Unchanged Lines', () => {
 		await page.waitForTimeout(300);
 
 		// Line 3's data-line attribute should still be "2"
-		const newLine3DataLine = await page.locator('.rendered-overlay .line[data-line="2"]').getAttribute('data-line');
+		const newLine3DataLine = await page
+			.locator('.rendered-overlay .line[data-line="2"]')
+			.getAttribute('data-line');
 		expect(newLine3DataLine).toBe('2');
 
 		// Content should still be "c = 3"

@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Cursor Scrolling', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForTimeout(500);
 	});
 
@@ -125,9 +125,7 @@ test.describe('WYSIWYG Cursor Scrolling', () => {
 		expect(afterScrollCursorBox!.y).not.toBe(initialCursorBox!.y);
 	});
 
-	test('cursor should be visible after typing at bottom of scrolled content', async ({
-		page
-	}) => {
+	test('cursor should be visible after typing at bottom of scrolled content', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 		const customCursor = page.locator('.custom-cursor');
 

@@ -8,16 +8,19 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Long Word Wrapping', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('extremely long identifier should break mid-word to prevent overflow', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create an identifier that's longer than the editor width
-		const veryLongIdentifier = 'an_extremely_long_variable_name_that_cannot_possibly_fit_on_a_single_line_and_must_break_somewhere = 1';
+		const veryLongIdentifier =
+			'an_extremely_long_variable_name_that_cannot_possibly_fit_on_a_single_line_and_must_break_somewhere = 1';
 
 		await textarea.clear();
 		await textarea.fill(veryLongIdentifier);
@@ -53,7 +56,8 @@ test.describe('WYSIWYG Editor - Long Word Wrapping', () => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create a single very long word without spaces
-		const veryLongWord = 'Thisisaverylongwordwithoutanyspacesthatwillneedtobreaksomewhereinordertofitwithinthevisiblecanvaswidthotherwiseitwillcausehorizontalscrolling';
+		const veryLongWord =
+			'Thisisaverylongwordwithoutanyspacesthatwillneedtobreaksomewhereinordertofitwithinthevisiblecanvaswidthotherwiseitwillcausehorizontalscrolling';
 
 		await textarea.clear();
 		await textarea.fill(veryLongWord);
@@ -80,7 +84,8 @@ test.describe('WYSIWYG Editor - Long Word Wrapping', () => {
 	test('long URL in markdown should break to prevent overflow', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
-		const longURL = 'Check out https://www.example.com/this/is/a/very/long/url/path/that/could/cause/problems/if/not/handled/properly/with/many/segments';
+		const longURL =
+			'Check out https://www.example.com/this/is/a/very/long/url/path/that/could/cause/problems/if/not/handled/properly/with/many/segments';
 
 		await textarea.clear();
 		await textarea.fill(longURL);
@@ -106,7 +111,8 @@ test.describe('WYSIWYG Editor - Long Word Wrapping', () => {
 	test('calculation with very long expression should wrap', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
-		const longCalc = 'result = very_long_variable_one + another_extremely_long_variable_name + yet_another_long_identifier + final_long_variable';
+		const longCalc =
+			'result = very_long_variable_one + another_extremely_long_variable_name + yet_another_long_identifier + final_long_variable';
 
 		await textarea.clear();
 		await textarea.fill(longCalc);

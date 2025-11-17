@@ -8,16 +8,19 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Markdown Wrapping', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('long blockquote should wrap without horizontal overflow', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create a blockquote with very long text
-		const longBlockquote = '> This is a simple budget calculator written in CalcMark. And this text should wrap at word boundaries when it extends beyond the visible canvas instead of being cut off or scrolling horizontally.';
+		const longBlockquote =
+			'> This is a simple budget calculator written in CalcMark. And this text should wrap at word boundaries when it extends beyond the visible canvas instead of being cut off or scrolling horizontally.';
 
 		await textarea.clear();
 		await textarea.fill(longBlockquote);
@@ -53,7 +56,8 @@ test.describe('WYSIWYG Editor - Markdown Wrapping', () => {
 	test('long markdown with bold text should wrap correctly', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
-		const longMarkdown = 'This is **a very important and extremely long piece of bold text that should definitely wrap** when it reaches the edge of the editor instead of overflowing.';
+		const longMarkdown =
+			'This is **a very important and extremely long piece of bold text that should definitely wrap** when it reaches the edge of the editor instead of overflowing.';
 
 		await textarea.clear();
 		await textarea.fill(longMarkdown);
@@ -84,7 +88,8 @@ test.describe('WYSIWYG Editor - Markdown Wrapping', () => {
 	test('long markdown with inline code should wrap correctly', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
-		const longMarkdown = 'Use the function `this_is_a_very_long_function_name_that_might_cause_wrapping_issues_if_not_handled_properly` to calculate your budget.';
+		const longMarkdown =
+			'Use the function `this_is_a_very_long_function_name_that_might_cause_wrapping_issues_if_not_handled_properly` to calculate your budget.';
 
 		await textarea.clear();
 		await textarea.fill(longMarkdown);
@@ -112,7 +117,8 @@ test.describe('WYSIWYG Editor - Markdown Wrapping', () => {
 	test('heading with long text should wrap correctly', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
-		const longHeading = '# This Is A Very Long Heading That Should Wrap When It Extends Beyond The Visible Editor Canvas Width And Continues For Much Longer To Ensure It Really Does Wrap';
+		const longHeading =
+			'# This Is A Very Long Heading That Should Wrap When It Extends Beyond The Visible Editor Canvas Width And Continues For Much Longer To Ensure It Really Does Wrap';
 
 		await textarea.clear();
 		await textarea.fill(longHeading);

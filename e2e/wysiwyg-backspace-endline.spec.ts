@@ -15,7 +15,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Backspace at End of Calculation Line', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -33,13 +33,10 @@ test.describe('WYSIWYG Editor - Backspace at End of Calculation Line', () => {
 		// Position cursor at END of first calculation line (after "5000")
 		const textValue = await textarea.inputValue();
 		const endOfLine1 = textValue.indexOf('\n'); // Position just before newline
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			endOfLine1
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, endOfLine1);
 
 		await page.waitForTimeout(100);
 
@@ -76,13 +73,10 @@ test.describe('WYSIWYG Editor - Backspace at End of Calculation Line', () => {
 		// Position cursor at end of line 1
 		const textValue = await textarea.inputValue();
 		const endOfLine1 = textValue.indexOf('\n');
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			endOfLine1
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, endOfLine1);
 
 		await page.waitForTimeout(100);
 
@@ -112,13 +106,10 @@ test.describe('WYSIWYG Editor - Backspace at End of Calculation Line', () => {
 		// Position cursor at end of "# Header Line"
 		const textValue = await textarea.inputValue();
 		const endOfHeader = textValue.indexOf('\n');
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			endOfHeader
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, endOfHeader);
 
 		await page.waitForTimeout(100);
 
@@ -180,13 +171,10 @@ test.describe('WYSIWYG Editor - Backspace at End of Calculation Line', () => {
 		// Position at end of line 1
 		const initialText = await textarea.inputValue();
 		const endOfLine1 = initialText.indexOf('\n');
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			endOfLine1
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, endOfLine1);
 
 		await page.waitForTimeout(100);
 

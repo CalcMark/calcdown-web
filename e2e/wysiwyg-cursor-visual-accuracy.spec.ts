@@ -23,7 +23,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
 
 test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -83,13 +83,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		const textValue = await textarea.inputValue();
 		const targetPos = textValue.indexOf('plain') + 2; // After 'pl'
 
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 
 		await page.waitForTimeout(100);
 
@@ -106,9 +103,7 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		expect(newValue).toBe('This is plXain text');
 
 		// Cursor should be after X
-		const newCursorPos = await textarea.evaluate(
-			(el: HTMLTextAreaElement) => el.selectionStart
-		);
+		const newCursorPos = await textarea.evaluate((el: HTMLTextAreaElement) => el.selectionStart);
 		expect(newCursorPos).toBe(targetPos + 1);
 	});
 
@@ -123,13 +118,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		const textValue = await textarea.inputValue();
 		const targetPos = textValue.indexOf(',') + 1; // After ','
 
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 
 		await page.waitForTimeout(100);
 
@@ -162,13 +154,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		const boldStart = textValue.indexOf('bold');
 		const targetPos = boldStart + 1; // After 'b'
 
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 
 		await page.waitForTimeout(100);
 
@@ -196,13 +185,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		const italicStart = textValue.indexOf('italic');
 		const targetPos = italicStart + 3; // After 'ita'
 
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 
 		await page.waitForTimeout(100);
 
@@ -231,13 +217,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		const textValue = await textarea.inputValue();
 		const dollarPos = textValue.indexOf('$') + 1;
 
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			dollarPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, dollarPos);
 
 		await page.waitForTimeout(200);
 
@@ -313,13 +296,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 
 		// 1. In the title
 		let targetPos = content.indexOf('Title') + 2; // After "Ti"
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 		await page.waitForTimeout(50);
 
 		await textarea.press('X');
@@ -328,13 +308,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 
 		// 2. In the calculation
 		targetPos = newValue.indexOf('$500') + 1; // After "$"
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 		await page.waitForTimeout(50);
 
 		await textarea.press('9');
@@ -343,13 +320,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 
 		// 3. In the markdown bold
 		targetPos = newValue.indexOf('bold') + 2; // After "bo"
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			targetPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, targetPos);
 		await page.waitForTimeout(50);
 
 		await textarea.press('Z');
@@ -368,13 +342,10 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		// Rapidly move cursor to different positions
 		for (let i = 0; i < 10; i++) {
 			const randomPos = Math.floor(Math.random() * 35);
-			await textarea.evaluate(
-				(el: HTMLTextAreaElement, pos) => {
-					el.setSelectionRange(pos, pos);
-					el.focus();
-				},
-				randomPos
-			);
+			await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+				el.setSelectionRange(pos, pos);
+				el.focus();
+			}, randomPos);
 
 			await page.waitForTimeout(20);
 

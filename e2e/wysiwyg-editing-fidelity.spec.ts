@@ -13,7 +13,8 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  * Helper to generate random printable ASCII characters
  */
 function randomChar(): string {
-	const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,;:!?-_=+*/$#@()[]{}<>';
+	const chars =
+		'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,;:!?-_=+*/$#@()[]{}<>';
 	return chars[Math.floor(Math.random() * chars.length)];
 }
 
@@ -26,7 +27,7 @@ function randomDelay(min = 30, max = 150): number {
 
 test.describe('WYSIWYG Editor - Editing Fidelity (CRITICAL)', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -157,7 +158,7 @@ test.describe('WYSIWYG Editor - Editing Fidelity (CRITICAL)', () => {
 			{ type: 'append', text: '$' },
 			{ type: 'append', text: '50' },
 			{ type: 'append', text: ',' },
-			{ type: 'append', text: '000' },
+			{ type: 'append', text: '000' }
 		];
 
 		for (const op of operations) {

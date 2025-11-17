@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Word Wrapping', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');
@@ -238,9 +238,7 @@ y = 10`;
 
 		// Middle gutter line should have a result (it's a calculation)
 		const middleGutterLine = gutterLines.nth(1);
-		const hasResult = await middleGutterLine.evaluate((el) =>
-			el.classList.contains('has-result')
-		);
+		const hasResult = await middleGutterLine.evaluate((el) => el.classList.contains('has-result'));
 		expect(hasResult).toBe(true);
 	});
 

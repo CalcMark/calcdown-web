@@ -11,7 +11,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Visual Bugs (CRITICAL)', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -74,8 +74,8 @@ test.describe('WYSIWYG Editor - Visual Bugs (CRITICAL)', () => {
 		console.log('  Overlay opacity:', overlayOpacity);
 
 		// When idle, textarea should be transparent
-		const isTransparent = textareaColor === 'rgba(0, 0, 0, 0)' ||
-		                      textareaColor.includes('transparent');
+		const isTransparent =
+			textareaColor === 'rgba(0, 0, 0, 0)' || textareaColor.includes('transparent');
 		expect(isTransparent).toBe(true);
 
 		// When idle, overlay should be visible
@@ -108,7 +108,9 @@ test.describe('WYSIWYG Editor - Visual Bugs (CRITICAL)', () => {
 		expect(textareaBox!.height).toBe(overlayBox!.height);
 	});
 
-	test('CRITICAL: custom cursor should appear after delay and be correct size', async ({ page }) => {
+	test('CRITICAL: custom cursor should appear after delay and be correct size', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.clear();
@@ -119,7 +121,7 @@ test.describe('WYSIWYG Editor - Visual Bugs (CRITICAL)', () => {
 
 		// Check if custom cursor exists
 		const customCursor = page.locator('.custom-cursor');
-		const cursorExists = await customCursor.count() > 0;
+		const cursorExists = (await customCursor.count()) > 0;
 
 		if (cursorExists) {
 			// Get cursor height
@@ -165,7 +167,7 @@ test.describe('WYSIWYG Editor - Visual Bugs (CRITICAL)', () => {
 
 		// Check if custom cursor is showing
 		const customCursor = page.locator('.custom-cursor');
-		const showingCustom = await customCursor.count() > 0;
+		const showingCustom = (await customCursor.count()) > 0;
 
 		if (showingCustom) {
 			// Native cursor should be hidden (caret-color: transparent)
@@ -175,13 +177,14 @@ test.describe('WYSIWYG Editor - Visual Bugs (CRITICAL)', () => {
 
 			console.log('Caret color with custom cursor:', caretColor);
 
-			const isTransparent = caretColor === 'rgba(0, 0, 0, 0)' ||
-			                      caretColor.includes('transparent');
+			const isTransparent = caretColor === 'rgba(0, 0, 0, 0)' || caretColor.includes('transparent');
 			expect(isTransparent).toBe(true);
 		}
 	});
 
-	test('VISUAL REGRESSION: screenshot during typing should show ONLY textarea', async ({ page }) => {
+	test('VISUAL REGRESSION: screenshot during typing should show ONLY textarea', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.clear();

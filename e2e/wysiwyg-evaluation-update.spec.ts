@@ -20,7 +20,7 @@ test.describe('WYSIWYG Editor - Evaluation Updates', () => {
 			console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
 		});
 
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -30,7 +30,9 @@ test.describe('WYSIWYG Editor - Evaluation Updates', () => {
 
 		// Initial setup with correct variable names
 		await textarea.clear();
-		await textarea.fill('monthly_salary = $5000\nbonus = $500\ntotal_income = monthly_salary + bonus');
+		await textarea.fill(
+			'monthly_salary = $5000\nbonus = $500\ntotal_income = monthly_salary + bonus'
+		);
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1000);
 
 		// Verify initial calculation is correct

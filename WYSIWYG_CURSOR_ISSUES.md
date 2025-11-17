@@ -3,16 +3,19 @@
 ## Summary of Reported Bugs
 
 ### 1. Phantom Space Bug (Safari)
+
 **Reported:** User typed ',' after '$500', then typed '000' → Got '$500, 000' with unwanted space
 **Status:** Cannot reproduce in Chromium tests, Safari-specific
 **Impact:** Critical - breaks editing fidelity
 
 ### 2. Cursor Lag (Safari)
+
 **Reported:** Cursor doesn't update immediately after typing, "catches up after a couple seconds"
 **Status:** Cannot reproduce in Chromium tests, Safari-specific
 **Impact:** Critical - breaks real-time editing experience
 
 ### 3. Character Deletion Corruption (Safari)
+
 **Reported:** Cursor between 'l' and 'y' in "monthly", rapid Backspace deleted characters before cursor BUT ALSO deleted the 'y' AFTER cursor
 **Result:** `"monthly_salary"` → `"mo_salary"` (the 'y' was deleted)
 **Status:** Cannot reproduce in Chromium tests - Chromium correctly preserves 'y'
@@ -50,6 +53,7 @@ In `WysiwygCalcMarkEditor.svelte:395-396`:
 5. **In Safari**: This can reset the cursor position or interfere with ongoing input
 
 **The Flow:**
+
 ```
 User types 'x'
   ↓
@@ -76,11 +80,13 @@ BUG: Cursor jumps or lags
 ### Evidence from Tests
 
 All tests pass in Chromium:
+
 - ✅ Cursor updates after every character
 - ✅ No phantom spaces
 - ✅ Characters after cursor preserved during rapid Backspace
 
 But user experiences failures in Safari:
+
 - ❌ Cursor lags
 - ❌ Phantom spaces appear
 - ❌ Characters after cursor get deleted
@@ -96,6 +102,7 @@ But user experiences failures in Safari:
 ### Implementation
 
 **Current (Broken):**
+
 ```svelte
 <textarea
     bind:value={rawText}
@@ -104,6 +111,7 @@ But user experiences failures in Safari:
 ```
 
 **Fixed:**
+
 ```svelte
 <textarea
     bind:this={textareaElement}
@@ -113,16 +121,17 @@ But user experiences failures in Safari:
 ```
 
 **handleInput remains the same:**
+
 ```typescript
 function handleInput() {
-    if (!textareaElement) return;
+	if (!textareaElement) return;
 
-    // THIS is the single source of truth
-    rawText = textareaElement.value;
-    doc.updateRawText(rawText);
+	// THIS is the single source of truth
+	rawText = textareaElement.value;
+	doc.updateRawText(rawText);
 
-    updateCursorPosition();
-    scheduleEvaluation();
+	updateCursorPosition();
+	scheduleEvaluation();
 }
 ```
 
@@ -143,6 +152,7 @@ The `doc.updateRawText(rawText)` call is important - it updates the document mod
 ### Evaluation and Re-rendering
 
 The evaluation flow is correct:
+
 1. User input → Update textarea (native)
 2. Input event → Update `rawText` → Update `doc`
 3. Debounced → Evaluate → Update overlay rendering
@@ -163,6 +173,7 @@ The key is that evaluation should NEVER modify the textarea value - only the ove
 ### Needed: Safari-Specific Tests
 
 Since all bugs appear Safari-specific, we need:
+
 - Run existing tests in WebKit (Playwright supports this)
 - Add Safari-specific timing tests
 - Test with actual Safari browser on macOS
@@ -187,11 +198,13 @@ npx playwright test --project=webkit
 ## Risk Assessment
 
 **Risk of Change: LOW**
+
 - Only removing a two-way binding
 - Not changing any logic
 - Input handling stays the same
 
 **Impact of Fix: HIGH**
+
 - Should eliminate Safari race conditions
 - Should fix cursor lag
 - Should fix character corruption

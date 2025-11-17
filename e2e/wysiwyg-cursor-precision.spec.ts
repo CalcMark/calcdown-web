@@ -12,12 +12,16 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Cursor Precision', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
-	test('should place cursor between characters when clicking in rendered text', async ({ page }) => {
+	test('should place cursor between characters when clicking in rendered text', async ({
+		page
+	}) => {
 		// Wait for initial render
 		await page.waitForTimeout(500);
 
@@ -26,7 +30,7 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		let bonusLine = null;
 		let bonusLineIndex = -1;
 
-		for (let i = 0; i < await lines.count(); i++) {
+		for (let i = 0; i < (await lines.count()); i++) {
 			const text = await lines.nth(i).textContent();
 			if (text?.includes('bonus') && text?.includes('500')) {
 				bonusLine = lines.nth(i);
@@ -83,7 +87,7 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		let salaryLine = null;
 		let lineIndex = -1;
 
-		for (let i = 0; i < await lines.count(); i++) {
+		for (let i = 0; i < (await lines.count()); i++) {
 			const text = await lines.nth(i).textContent();
 			if (text?.includes('monthly_salary') && text?.includes('5000')) {
 				salaryLine = lines.nth(i);
@@ -126,7 +130,7 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		const lines = page.locator('.rendered-overlay .line');
 		let bonusLine = null;
 
-		for (let i = 0; i < await lines.count(); i++) {
+		for (let i = 0; i < (await lines.count()); i++) {
 			const text = await lines.nth(i).textContent();
 			if (text?.includes('bonus') && text?.includes('500')) {
 				bonusLine = lines.nth(i);
@@ -248,7 +252,7 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		const lines = page.locator('.rendered-overlay .line');
 		let salaryLine = null;
 
-		for (let i = 0; i < await lines.count(); i++) {
+		for (let i = 0; i < (await lines.count()); i++) {
 			const text = await lines.nth(i).textContent();
 			if (text?.includes('monthly_salary')) {
 				salaryLine = lines.nth(i);
@@ -329,7 +333,7 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		const calcResult = page.locator('.calc-result').first();
 
 		// Only run test if results are showing
-		if (await calcResult.count() > 0) {
+		if ((await calcResult.count()) > 0) {
 			await expect(calcResult).toBeVisible();
 
 			// Click on the result
@@ -364,7 +368,7 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 
 		// Find the calculation
 		const calculation = page.locator('.calculation');
-		if (await calculation.count() > 0) {
+		if ((await calculation.count()) > 0) {
 			const box = await calculation.first().boundingBox();
 			expect(box).not.toBeNull();
 

@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Cursor - Instant Response', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');
@@ -226,7 +226,9 @@ test.describe('WYSIWYG Cursor - Instant Response', () => {
 		expect(endBox!.x).toBeGreaterThanOrEqual(startBox!.x);
 	});
 
-	test('cursor should appear immediately when switching from typing to navigation', async ({ page }) => {
+	test('cursor should appear immediately when switching from typing to navigation', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 		await textarea.fill('test text');
 		await page.waitForTimeout(200);

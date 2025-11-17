@@ -11,12 +11,14 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Delete/Backspace Behavior', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
 
-	test('Backspace at end of line should delete last character, NOT merge lines', async ({ page }) => {
+	test('Backspace at end of line should delete last character, NOT merge lines', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.clear();
@@ -46,7 +48,9 @@ test.describe('WYSIWYG Editor - Delete/Backspace Behavior', () => {
 		expect(newText.split('\n').length).toBe(2);
 	});
 
-	test('Delete at end of line SHOULD merge next line (standard editor behavior)', async ({ page }) => {
+	test('Delete at end of line SHOULD merge next line (standard editor behavior)', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.clear();

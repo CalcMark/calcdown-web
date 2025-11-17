@@ -19,37 +19,40 @@ let isUpdatingFromEvaluation = $state(false);
 ### 2. Modified `handleInput()` Function
 
 **Before:**
+
 ```typescript
 function handleInput() {
-    rawText = textareaElement.value;  // ← Triggers bind:value feedback!
-    doc.updateRawText(rawText);
-    updateCursorPosition();
-    scheduleEvaluation();
+	rawText = textareaElement.value; // ← Triggers bind:value feedback!
+	doc.updateRawText(rawText);
+	updateCursorPosition();
+	scheduleEvaluation();
 }
 ```
 
 **After:**
+
 ```typescript
 function handleInput() {
-    if (!textareaElement || isUpdatingFromEvaluation) return;
+	if (!textareaElement || isUpdatingFromEvaluation) return;
 
-    isUpdatingFromUser = true;  // ← Set flag FIRST
+	isUpdatingFromUser = true; // ← Set flag FIRST
 
-    try {
-        rawText = textareaElement.value;  // Now safe from feedback
-        doc.updateRawText(rawText);
-        updateCursorPosition();
-        scheduleEvaluation();
-    } finally {
-        // Clear flag AFTER Svelte processes the change
-        queueMicrotask(() => {
-            isUpdatingFromUser = false;
-        });
-    }
+	try {
+		rawText = textareaElement.value; // Now safe from feedback
+		doc.updateRawText(rawText);
+		updateCursorPosition();
+		scheduleEvaluation();
+	} finally {
+		// Clear flag AFTER Svelte processes the change
+		queueMicrotask(() => {
+			isUpdatingFromUser = false;
+		});
+	}
 }
 ```
 
 **Key Improvements:**
+
 - Flag set BEFORE state changes
 - `try/finally` ensures flag always cleared
 - `queueMicrotask()` ensures Svelte's reactivity completes
@@ -58,26 +61,28 @@ function handleInput() {
 ### 3. Modified `evaluateDocument()` Function
 
 **Added:**
+
 ```typescript
 async function evaluateDocument() {
-    if (isUpdatingFromUser) {
-        return;  // Skip evaluation if user is typing
-    }
+	if (isUpdatingFromUser) {
+		return; // Skip evaluation if user is typing
+	}
 
-    isEvaluating = true;
-    isUpdatingFromEvaluation = true;  // ← Set flag
+	isEvaluating = true;
+	isUpdatingFromEvaluation = true; // ← Set flag
 
-    try {
-        // ... evaluation logic ...
-        // CRITICAL: NEVER write to textarea.value!
-    } finally {
-        isEvaluating = false;
-        isUpdatingFromEvaluation = false;  // ← Clear flag
-    }
+	try {
+		// ... evaluation logic ...
+		// CRITICAL: NEVER write to textarea.value!
+	} finally {
+		isEvaluating = false;
+		isUpdatingFromEvaluation = false; // ← Clear flag
+	}
 }
 ```
 
 **Key Improvements:**
+
 - Skips evaluation during active typing
 - Sets flag to prevent input handler interference
 - Explicitly documented: NEVER writes to textarea
@@ -85,44 +90,48 @@ async function evaluateDocument() {
 ### 4. Removed `bind:value` (Replaced with Manual Sync)
 
 **Before:**
+
 ```svelte
 <textarea bind:value={rawText} oninput={handleInput} />
 ```
 
 **After:**
+
 ```svelte
 <textarea oninput={handleInput} />
 <!-- NO bind:value -->
 ```
 
 **Added manual synchronization:**
+
 ```typescript
 // Set initial value in onMount
 onMount(() => {
-    if (textareaElement) {
-        textareaElement.value = rawText;
-    }
-    // ...
+	if (textareaElement) {
+		textareaElement.value = rawText;
+	}
+	// ...
 });
 
 // Controlled synchronization with $effect
 $effect(() => {
-    // NEVER update during user input or evaluation
-    if (isUpdatingFromUser || isUpdatingFromEvaluation) {
-        return;
-    }
+	// NEVER update during user input or evaluation
+	if (isUpdatingFromUser || isUpdatingFromEvaluation) {
+		return;
+	}
 
-    // Only for programmatic changes or initial load
-    if (textareaElement && textareaElement.value !== rawText) {
-        console.log('[WYSIWYG] $effect: Syncing (should be rare)');
-        textareaElement.value = rawText;
-    }
+	// Only for programmatic changes or initial load
+	if (textareaElement && textareaElement.value !== rawText) {
+		console.log('[WYSIWYG] $effect: Syncing (should be rare)');
+		textareaElement.value = rawText;
+	}
 });
 ```
 
 ### 5. Data Flow Architecture
 
 **Old (Broken) Flow:**
+
 ```
 User types
   ↓
@@ -138,6 +147,7 @@ Next keystroke corrupted
 ```
 
 **New (Fixed) Flow:**
+
 ```
 User types
   ↓
@@ -161,6 +171,7 @@ No race condition!
 ### Before Implementation
 
 **Character corruption examples:**
+
 - "salary" → "slryaa" (reordered)
 - "bonus" → "sunob" (reversed)
 - "$500,000" → "$500, 000" (phantom space)
@@ -171,11 +182,12 @@ No race condition!
 ### After Implementation
 
 **Test Results:**
+
 - ✅ 26 out of 27 tests **PASS**
 - ✅ NO character reordering
 - ✅ NO character reversal
 - ✅ NO phantom spaces in most tests
-- ⚠️  1 test still flaky (drops '$' occasionally)
+- ⚠️ 1 test still flaky (drops '$' occasionally)
 
 **Improvement:** ~96% success rate vs previous ~60-70% with severe corruption
 
@@ -231,9 +243,9 @@ Based on research into production editors:
 ### Immediate
 
 1. ✅ Implementation complete
-2. ⏭️  Test in Safari/WebKit
-3. ⏭️  Monitor flaky test (fuzz test)
-4. ⏭️  User testing in production-like environment
+2. ⏭️ Test in Safari/WebKit
+3. ⏭️ Monitor flaky test (fuzz test)
+4. ⏭️ User testing in production-like environment
 
 ### Future Improvements
 
@@ -247,7 +259,7 @@ Based on research into production editors:
 1. ✅ Implementation documented
 2. ✅ Pattern explained
 3. ✅ Test results recorded
-4. ⏭️  Update architecture docs
+4. ⏭️ Update architecture docs
 
 ---
 
@@ -290,12 +302,14 @@ Based on research into production editors:
 ## Code Maintainability
 
 **Improved:**
+
 - Clear separation of concerns (user input vs evaluation)
 - Well-documented synchronization logic
 - Explicit data flow (no hidden reactivity)
 - Easy to debug (flags can be logged)
 
 **Added Complexity:**
+
 - Two synchronization flags to track
 - Manual textarea value management
 - More lines of code

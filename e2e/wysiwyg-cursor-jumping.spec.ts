@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Cursor - No Jumping', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');
@@ -152,9 +152,7 @@ test.describe('WYSIWYG Cursor - No Jumping', () => {
 
 		// Either native or custom cursor should be visible
 		const customCursor = page.locator('.custom-cursor');
-		const caretColor = await textarea.evaluate((el) =>
-			window.getComputedStyle(el).caretColor
-		);
+		const caretColor = await textarea.evaluate((el) => window.getComputedStyle(el).caretColor);
 
 		// At least one cursor should be visible
 		const customVisible = await customCursor.isVisible();

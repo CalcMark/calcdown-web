@@ -13,9 +13,11 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Typing Edge Cases', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 		// Wait for initial evaluation
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 2000);
 	});
@@ -150,7 +152,12 @@ test.describe('WYSIWYG Editor - Typing Edge Cases', () => {
 		});
 
 		expect(lineAfterEnter).toBe(lineBeforeEnter + 1);
-		console.log('[TEST] Cursor correctly moved from line', lineBeforeEnter, 'to line', lineAfterEnter);
+		console.log(
+			'[TEST] Cursor correctly moved from line',
+			lineBeforeEnter,
+			'to line',
+			lineAfterEnter
+		);
 	});
 
 	test('arrow down/up keys correctly change cursor line number', async ({ page }) => {
@@ -205,7 +212,9 @@ test.describe('WYSIWYG Editor - Typing Edge Cases', () => {
 		console.log('[TEST] Arrow keys correctly changed line numbers');
 	});
 
-	test('deleting characters on one line preserves highlighting on other lines', async ({ page }) => {
+	test('deleting characters on one line preserves highlighting on other lines', async ({
+		page
+	}) => {
 		const overlay = page.locator('.rendered-overlay');
 		const textarea = page.locator('.raw-textarea');
 
@@ -278,14 +287,18 @@ test.describe('WYSIWYG Editor - Typing Edge Cases', () => {
 			});
 
 			if (currentLine !== initialLine) {
-				throw new Error(`Cursor jumped from line ${initialLine} to line ${currentLine} during rapid typing!`);
+				throw new Error(
+					`Cursor jumped from line ${initialLine} to line ${currentLine} during rapid typing!`
+				);
 			}
 		}
 
 		console.log('[TEST] Cursor stayed stable during rapid typing');
 	});
 
-	test('typing after deleting entire line content preserves highlighting elsewhere', async ({ page }) => {
+	test('typing after deleting entire line content preserves highlighting elsewhere', async ({
+		page
+	}) => {
 		const overlay = page.locator('.rendered-overlay');
 
 		// Check line 5 has syntax highlighting
@@ -320,7 +333,9 @@ test.describe('WYSIWYG Editor - Typing Edge Cases', () => {
 		console.log('[TEST] Replacing entire line content preserved highlighting elsewhere');
 	});
 
-	test('pasting text does not cause cursor to jump or clear highlighting on other lines', async ({ page }) => {
+	test('pasting text does not cause cursor to jump or clear highlighting on other lines', async ({
+		page
+	}) => {
 		const overlay = page.locator('.rendered-overlay');
 		const textarea = page.locator('.raw-textarea');
 

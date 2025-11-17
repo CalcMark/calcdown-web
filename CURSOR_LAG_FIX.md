@@ -3,6 +3,7 @@
 ## Problem Report
 
 **User observations:**
+
 1. Visual cursor lags behind typing during fast input
 2. Cursor appears "half-way over a character" after stopping
 3. Cursor jumps to end of document unexpectedly
@@ -13,26 +14,29 @@
 
 **The Bug:**
 When a user types, the visual cursor position is calculated by:
+
 1. Reading `textarea.selectionStart` (correct position)
 2. Converting to line number and offset using `doc.getLineFromPosition()`
 3. Querying the overlay DOM for the line element
 4. Using Range API to calculate pixel coordinates
 
 **The Problem:**
+
 ```typescript
 function handleInput() {
-    rawText = textareaElement.value;
-    doc.updateRawText(rawText);  // Document model updated
+	rawText = textareaElement.value;
+	doc.updateRawText(rawText); // Document model updated
 
-    // BUG: lines not updated yet!
-    // updateCursorPosition() queries STALE overlay DOM
-    updateCursorPosition();  // ❌ Calculates against old rendered lines
+	// BUG: lines not updated yet!
+	// updateCursorPosition() queries STALE overlay DOM
+	updateCursorPosition(); // ❌ Calculates against old rendered lines
 }
 ```
 
 The `lines` array wasn't updated until `evaluateDocument()` ran (after debounce), so the overlay DOM contained **old/stale content**. The cursor calculation used this stale DOM, causing the cursor to appear at incorrect pixel positions.
 
 **Evidence:**
+
 - User reported cursor "half-way over a character"
 - This is exactly what happens when cursor is calculated against different text than what's actually rendered
 - The font metrics don't match because the DOM contains old text
@@ -44,12 +48,12 @@ Even after adding `lines = doc.getLines()` to `handleInput()`, Svelte 5 uses **m
 
 ```typescript
 function handleInput() {
-    rawText = textareaElement.value;
-    doc.updateRawText(rawText);
+	rawText = textareaElement.value;
+	doc.updateRawText(rawText);
 
-    lines = doc.getLines();  // Svelte schedules DOM update (microtask)
+	lines = doc.getLines(); // Svelte schedules DOM update (microtask)
 
-    updateCursorPosition();  // ❌ Runs BEFORE DOM actually updates!
+	updateCursorPosition(); // ❌ Runs BEFORE DOM actually updates!
 }
 ```
 
@@ -61,13 +65,13 @@ The `updateCursorPosition()` was called before Svelte applied the DOM changes, s
 
 ```typescript
 function handleInput() {
-    rawText = textareaElement.value;
-    doc.updateRawText(rawText);
+	rawText = textareaElement.value;
+	doc.updateRawText(rawText);
 
-    // CRITICAL: Update lines IMMEDIATELY so cursor calculation is accurate
-    lines = doc.getLines();
+	// CRITICAL: Update lines IMMEDIATELY so cursor calculation is accurate
+	lines = doc.getLines();
 
-    // ...
+	// ...
 }
 ```
 
@@ -75,17 +79,17 @@ function handleInput() {
 
 ```typescript
 function handleInput() {
-    rawText = textareaElement.value;
-    doc.updateRawText(rawText);
+	rawText = textareaElement.value;
+	doc.updateRawText(rawText);
 
-    lines = doc.getLines();  // Schedule DOM update
+	lines = doc.getLines(); // Schedule DOM update
 
-    // Wait for Svelte to apply DOM changes before calculating cursor position
-    queueMicrotask(() => {
-        updateCursorPosition();  // ✅ Now uses fresh DOM
-    });
+	// Wait for Svelte to apply DOM changes before calculating cursor position
+	queueMicrotask(() => {
+		updateCursorPosition(); // ✅ Now uses fresh DOM
+	});
 
-    scheduleEvaluation();
+	scheduleEvaluation();
 }
 ```
 
@@ -95,18 +99,20 @@ We initially tried `flushSync()` which forces synchronous DOM updates:
 
 ```typescript
 flushSync(() => {
-    lines = doc.getLines();
+	lines = doc.getLines();
 });
-updateCursorPosition();  // DOM is guaranteed fresh
+updateCursorPosition(); // DOM is guaranteed fresh
 ```
 
 However, `flushSync()` caused **character dropping** in tests:
+
 - Expected: "salary = $50"
 - Got: "salary = $5" (the '0' was dropped)
 
 This happened because `flushSync()` forces a synchronous re-render **during the input event**, which interfered with the browser's input handling.
 
 `queueMicrotask()` is safer:
+
 - Allows the input event to complete
 - DOM updates on next microtask (< 1ms delay)
 - No interference with browser input handling
@@ -115,6 +121,7 @@ This happened because `flushSync()` forces a synchronous re-render **during the 
 ### Performance Characteristics
 
 **Cursor update timing:**
+
 1. User types character (~0ms)
 2. `handleInput()` runs (~0ms)
 3. `lines` updated (~0ms)
@@ -152,37 +159,38 @@ Created `e2e/wysiwyg-cursor-visual-accuracy.spec.ts` with 10 comprehensive tests
 
 ```typescript
 function handleInput() {
-    if (!textareaElement || isUpdatingFromEvaluation) return;
+	if (!textareaElement || isUpdatingFromEvaluation) return;
 
-    isUpdatingFromUser = true;
+	isUpdatingFromUser = true;
 
-    try {
-        // Read from textarea (source of truth)
-        rawText = textareaElement.value;
-        doc.updateRawText(rawText);
+	try {
+		// Read from textarea (source of truth)
+		rawText = textareaElement.value;
+		doc.updateRawText(rawText);
 
-        // CRITICAL: Update lines IMMEDIATELY so cursor position calculation is accurate
-        // The overlay must reflect current text for cursor positioning to work correctly
-        // Evaluation will re-classify/highlight later, but we need accurate DOM NOW
-        lines = doc.getLines();
+		// CRITICAL: Update lines IMMEDIATELY so cursor position calculation is accurate
+		// The overlay must reflect current text for cursor positioning to work correctly
+		// Evaluation will re-classify/highlight later, but we need accurate DOM NOW
+		lines = doc.getLines();
 
-        // Update cursor position after microtask to ensure DOM has updated
-        // queueMicrotask() allows Svelte to apply the DOM changes first
-        // This ensures cursor is calculated against fresh rendered lines
-        queueMicrotask(() => {
-            updateCursorPosition();
-        });
+		// Update cursor position after microtask to ensure DOM has updated
+		// queueMicrotask() allows Svelte to apply the DOM changes first
+		// This ensures cursor is calculated against fresh rendered lines
+		queueMicrotask(() => {
+			updateCursorPosition();
+		});
 
-        scheduleEvaluation();
-    } finally {
-        queueMicrotask(() => {
-            isUpdatingFromUser = false;
-        });
-    }
+		scheduleEvaluation();
+	} finally {
+		queueMicrotask(() => {
+			isUpdatingFromUser = false;
+		});
+	}
 }
 ```
 
 **Key changes:**
+
 - Added `lines = doc.getLines()` immediately after document update
 - Wrapped `updateCursorPosition()` in `queueMicrotask()` to wait for DOM update
 - Removed comment about not re-rendering lines (that was the bug!)
@@ -190,6 +198,7 @@ function handleInput() {
 ## Architecture Improvement
 
 **Before (Broken):**
+
 ```
 User types
   ↓
@@ -206,6 +215,7 @@ lines = doc.getLines() ← overlay finally updated
 ```
 
 **After (Fixed):**
+
 ```
 User types
   ↓

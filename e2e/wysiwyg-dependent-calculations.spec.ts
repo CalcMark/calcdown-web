@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG - Dependent Calculations', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');
@@ -73,7 +73,7 @@ test.describe('WYSIWYG - Dependent Calculations', () => {
 			gutterLines.nth(2).locator('.gutter-result').textContent(),
 			gutterLines.nth(3).locator('.gutter-result').textContent()
 		]);
-		expect(results.map(r => r?.trim())).toEqual(['5', '10', '15', '25']);
+		expect(results.map((r) => r?.trim())).toEqual(['5', '10', '15', '25']);
 
 		// Change x to 10
 		await textarea.fill('x = 10\ny = x * 2\nz = x + 10\nw = y + z');
@@ -86,7 +86,7 @@ test.describe('WYSIWYG - Dependent Calculations', () => {
 			gutterLines.nth(2).locator('.gutter-result').textContent(),
 			gutterLines.nth(3).locator('.gutter-result').textContent()
 		]);
-		expect(results.map(r => r?.trim())).toEqual(['10', '20', '20', '40']);
+		expect(results.map((r) => r?.trim())).toEqual(['10', '20', '20', '40']);
 	});
 
 	test('unchanged lines should not update when editing unrelated line', async ({ page }) => {

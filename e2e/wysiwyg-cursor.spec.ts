@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Cursor', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');
@@ -110,10 +110,7 @@ test.describe('WYSIWYG Cursor', () => {
 		// Click in middle of line
 		const line = page.locator('.rendered-overlay .line').first();
 		const lineBox = await line.boundingBox();
-		await page.mouse.click(
-			lineBox!.x + lineBox!.width / 2,
-			lineBox!.y + lineBox!.height / 2
-		);
+		await page.mouse.click(lineBox!.x + lineBox!.width / 2, lineBox!.y + lineBox!.height / 2);
 
 		await page.waitForTimeout(200);
 

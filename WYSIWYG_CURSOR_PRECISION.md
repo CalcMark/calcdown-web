@@ -42,21 +42,23 @@ The invisible textarea + visible overlay architecture has an **inherent alignmen
 ### Why Most Tests Pass
 
 The overlay and textarea use the same font size, line height, and padding:
+
 ```css
 .raw-textarea {
-  font-size: 16px;
-  line-height: 28px;
-  padding: 40px;
+	font-size: 16px;
+	line-height: 28px;
+	padding: 40px;
 }
 
 .rendered-overlay {
-  font-size: 16px;
-  line-height: 28px;
-  padding: 40px;
+	font-size: 16px;
+	line-height: 28px;
+	padding: 40px;
 }
 ```
 
 This alignment works for:
+
 - **Line-level clicks**: Clicking on a line focuses that line in textarea
 - **Approximate positioning**: Clicking "near" a character usually works
 - **Simple content**: Plain text with minimal formatting
@@ -64,6 +66,7 @@ This alignment works for:
 ### Why Some Tests Fail
 
 Alignment breaks down for:
+
 - **Inline additions**: Calculation results like `= $5500` appear in overlay but not in textarea
 - **Syntax highlighting**: Tokens may have different widths due to styling
 - **Word boundaries**: Double-click selection relies on textarea's internal word detection, which doesn't match rendered tokens
@@ -72,11 +75,13 @@ Alignment breaks down for:
 ## Implications for User Experience
 
 ### Good News
+
 - **Casual editing works**: Users can click approximately where they want to edit
 - **Line-level editing works**: Click on a line, start typing
 - **Navigation works**: Arrow keys, selection, focus management all work
 
 ### Bad News
+
 - **Pixel-perfect clicking fails**: Can't reliably click between two specific characters
 - **Word selection broken**: Double-click doesn't select semantic units
 - **Visual disconnect**: What you see (formatted) ≠ what you edit (raw text)
@@ -84,28 +89,33 @@ Alignment breaks down for:
 ## Potential Solutions
 
 ### Option 1: Accept Current Limitations
+
 - Document that clicking works at "line level" precision
 - Users learn to use keyboard navigation for precise positioning
 - Focus on other features
 
 ### Option 2: Improve Click-to-Position Mapping
+
 - Calculate character positions based on rendered text metrics
 - Use `Range` and `getBoundingClientRect()` to map clicks to positions
 - Complex but might work
 
 ### Option 3: ContentEditable Approach
+
 - Switch to `contenteditable` div instead of textarea
 - Full control over rendering AND editing
 - Can show formatted text while editing
 - More complex to implement (cursor management, undo/redo, etc.)
 
 ### Option 4: Hybrid Approach
+
 - Keep textarea for text management
 - Add visual cursor overlay that tracks textarea cursor
 - Implement click handler that calculates correct position
 - Map clicks on overlay → cursor positions in textarea
 
 ### Option 5: Modal Editing (Like Block Editor)
+
 - Click on line enters "edit mode" for that line
 - Edit mode shows raw text in textarea at that position
 - Exit edit mode shows formatted result
@@ -157,6 +167,7 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 ### Features Implemented
 
 #### 1. Click-to-Position Mapping (Range API)
+
 - **File**: `src/lib/utils/cursorPosition.ts:75`
 - **Function**: `getCharacterOffsetFromClick()`
 - Uses `Range.getBoundingClientRect()` to map pixel coordinates to character positions
@@ -165,6 +176,7 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 - Handles both simple text and token-wrapped content
 
 #### 2. Visual Cursor Overlay
+
 - **File**: `src/lib/components/WysiwygCalcMarkEditor.svelte:398-403`
 - Custom cursor indicator renders in overlay at exact position matching textarea cursor
 - Uses `calculateCursorPosition()` to determine pixel coordinates
@@ -172,6 +184,7 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 - Fixed double cursor issue by setting `caret-color: transparent` on textarea
 
 #### 3. Double-Click Word Selection
+
 - **File**: `src/lib/components/WysiwygCalcMarkEditor.svelte:297-364`
 - **Function**: `handleDoubleClickImpl()`
 - Attempts token-based selection first (semantic units like identifiers/numbers)
@@ -180,6 +193,7 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 - Maps overlay clicks to textarea selection ranges
 
 #### 4. Overlay Click Interception
+
 - **File**: `src/lib/components/WysiwygCalcMarkEditor.svelte:275-295`
 - **Function**: `handleClickImpl()`
 - Calculates line index from Y coordinate
@@ -190,6 +204,7 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 ### Critical Bug Fixes
 
 #### Bug #1: Missing Characters in Rendering
+
 - **Issue**: "total_income" rendered as "totalcome", "food = $800" as "food=$800"
 - **Root Cause**: Token concatenation without preserving whitespace
 - **Fix**: Rewrote `renderCalculationLine()` to iterate character-by-character
@@ -197,6 +212,7 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 - **Result**: All source text characters and whitespace now faithfully preserved
 
 #### Bug #2: Cumulative Vertical Drift
+
 - **Issue**: Cursor accuracy decreased further down document
 - **Root Cause**: Font mismatch (monospace vs sans-serif) + extra padding on `.calculation`
 - **Fix**:
@@ -207,12 +223,14 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 - **Result**: Pixel-perfect vertical alignment throughout document
 
 #### Bug #3: Double Cursor
+
 - **Issue**: Two cursors visible (textarea + custom overlay)
 - **Fix**: Set `caret-color: transparent` on textarea
 - **File**: `src/lib/components/WysiwygCalcMarkEditor.svelte:436`
 - **Result**: Only visual cursor indicator shows
 
 #### Bug #4: Sluggish Deletion Feel
+
 - **Issue**: Opacity fade during evaluation felt slow when deleting text
 - **Fix**: Removed `overlayOpacity = 0.7` during evaluation
 - **File**: `src/lib/components/WysiwygCalcMarkEditor.svelte:114-115`
@@ -221,26 +239,31 @@ The 3 failing tests are edge cases that are very close to passing (off by 1-2 ch
 ### Code Architecture Improvements
 
 #### Refactoring for Maintainability
+
 Component reduced from **~600 lines to ~400 lines** through extraction of pure functions.
 
 **New Module: `src/lib/utils/wysiwygRenderer.ts`**
+
 - Pure rendering functions with no side effects
 - Functions: `escapeHtml()`, `formatValue()`, `formatNumber()`, `renderMarkdownLine()`, `renderCalculationLine()`, `renderLine()`
 - Easy to test in isolation
 - 136 lines of focused rendering logic
 
 **New Module: `src/lib/utils/cursorPosition.ts`**
+
 - Pure cursor calculation functions
 - Functions: `findTextNodeAtOffset()`, `calculateCursorPosition()`, `getCharacterOffsetFromClick()`, `getLineIndexFromY()`
 - No DOM manipulation, just calculations
 - 142 lines of cursor positioning logic
 
 **Component Simplification:**
+
 - Event handlers reduced by 50-73%
 - Clearer separation of concerns: state management, event handling, rendering
 - Imports from utility modules instead of inline complexity
 
 #### File Structure
+
 ```
 src/lib/
 ├── components/
@@ -255,21 +278,25 @@ src/lib/
 ### UX Improvements
 
 #### Optimistic UI
+
 - Shows raw text immediately while evaluation happens in background
 - No waiting for server round-trip to see typed characters
 - Classification updates happen asynchronously without blocking
 
 #### Smooth Transitions
+
 - Calculation results fade in with 200ms animation
 - No jarring flashes during re-evaluation
 - Cursor stays visible and stable during processing
 
 #### Keyboard Navigation
+
 - All keyboard navigation works perfectly (arrow keys, home/end, page up/down)
 - Selection via Shift+arrows preserved
 - Undo/redo maintained by browser
 
 #### Mouse Interactions
+
 - Click to position: Works at character-level precision (8/11 tests passing)
 - Click and drag selection: Fully functional
 - Double-click selection: Token-aware (7/11 tests passing)
@@ -289,14 +316,17 @@ src/lib/
 The 3 failing tests are very close to passing and represent sub-optimal but functional behavior:
 
 **Test #1**: Cursor placed 1 character off from target
+
 - **Impact**: Low - user can adjust with one arrow key press
 - **Frequency**: Rare - only when clicking in middle of multi-digit numbers
 
 **Test #7**: Double-click selects adjacent word
+
 - **Impact**: Medium - requires re-selection to get correct word
 - **Frequency**: Occasional - depends on token boundary alignment
 
 **Test #11**: Character inserted 1-2 positions off
+
 - **Impact**: Low - visible immediately, easy to correct
 - **Frequency**: Rare - only when clicking between specific token pairs
 
@@ -311,6 +341,7 @@ The 3 failing tests are very close to passing and represent sub-optimal but func
 ### Browser Compatibility
 
 Tested and working in:
+
 - Chrome/Edge (Chromium)
 - Safari (WebKit)
 - Firefox (Gecko)

@@ -9,9 +9,11 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Text Rendering Accuracy', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('should render "total_income" without missing characters', async ({ page }) => {
@@ -125,7 +127,8 @@ test.describe('WYSIWYG Editor - Text Rendering Accuracy', () => {
 	test('should match textarea content exactly (character-by-character)', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 
-		const testContent = 'monthly_salary = $5000\nbonus = $500\ntotal_income = monthly_salary + bonus';
+		const testContent =
+			'monthly_salary = $5000\nbonus = $500\ntotal_income = monthly_salary + bonus';
 
 		await textarea.click();
 		await textarea.clear();
@@ -213,7 +216,8 @@ test.describe('WYSIWYG Editor - Text Rendering Accuracy', () => {
 			// Count how many times each character appears
 			for (let i = 0; i < identifier.length; i++) {
 				const char = identifier[i];
-				if (char !== '_') { // Underscores might render differently
+				if (char !== '_') {
+					// Underscores might render differently
 					expect(overlayText.includes(char)).toBe(true);
 				}
 			}

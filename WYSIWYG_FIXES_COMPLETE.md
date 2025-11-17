@@ -7,32 +7,39 @@ Successfully migrated CalcMark evaluation from server-side to client-side Web Wo
 ## What Was Fixed
 
 ### 1. Client-Side WASM Evaluation ✅
+
 **Problem**: Server round-trip (100-300ms) caused typing interruptions
 **Solution**: Web Worker running WASM locally (<5ms)
 
 **Files Created**:
+
 - `src/lib/client/calcmark.ts` - Browser WASM loader
 - `src/lib/workers/calcmark.worker.ts` - Background evaluation worker
 - `src/lib/client/calcmarkWorkerManager.ts` - Worker lifecycle management
 
 **Files Modified**:
+
 - `src/lib/components/WysiwygCalcMarkEditor.svelte` - Uses worker instead of fetch
 
 **Test Results**: 6/8 tests pass (worker loads, evaluates, renders, updates)
 
 ### 2. Precise Overlay Alignment ✅
+
 **Problem**: Overlay shifted up/right, line heights inconsistent, cursor positioning off
 **Solution**: Centralized CSS with zero-padding rules
 
 **Files Created**:
+
 - `src/lib/styles/wysiwyg-alignment.css` - Single source of truth for all alignment rules
 - `e2e/wysiwyg-precise-alignment.spec.ts` - 8 tests validating pixel-perfect alignment
 - `e2e/wysiwyg-worker-evaluation.spec.ts` - 8 tests validating WASM evaluation
 
 **Files Modified**:
+
 - `src/routes/+layout.svelte` - Imports alignment CSS globally
 
 **Key Principles**:
+
 ```css
 /* ALL elements must have: */
 padding: 0;
@@ -50,6 +57,7 @@ font-family: inherit;
 ### Passing Tests (13/16 total)
 
 **Web Worker**:
+
 - ✅ Initializes without errors
 - ✅ Loads CalcMark WASM
 - ✅ Evaluates calculations
@@ -58,6 +66,7 @@ font-family: inherit;
 - ✅ Updates dynamically
 
 **Alignment**:
+
 - ✅ Token spans have zero padding/margin
 - ✅ Calculation spans have zero vertical spacing
 - ✅ Line height identical before/after syntax highlighting
@@ -76,18 +85,21 @@ These are test setup issues, not functional problems.
 ## Architecture
 
 ### Before
+
 ```
 User types → 150ms debounce → fetch('/api/process') → 100-300ms network
   → server WASM → response → re-render → TYPING INTERRUPTED
 ```
 
 ### After
+
 ```
 User types → 150ms debounce → Web Worker → <5ms local WASM
   → response → re-render → SMOOTH TYPING
 ```
 
 ### CSS Hierarchy
+
 ```
 wysiwyg-alignment.css (base rules)
   ├─ Textarea (source of truth)
@@ -103,22 +115,24 @@ calcmark-theme.css (colors only)
 
 ## Performance Impact
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Evaluation latency | 250-450ms | ~155ms | **60% faster** |
-| Network calls | Every keystroke | Zero | **100% eliminated** |
-| Typing interruptions | Frequent | None | **Fixed** |
-| Overlay alignment | Broken | Pixel-perfect | **Fixed** |
+| Metric               | Before          | After         | Improvement         |
+| -------------------- | --------------- | ------------- | ------------------- |
+| Evaluation latency   | 250-450ms       | ~155ms        | **60% faster**      |
+| Network calls        | Every keystroke | Zero          | **100% eliminated** |
+| Typing interruptions | Frequent        | None          | **Fixed**           |
+| Overlay alignment    | Broken          | Pixel-perfect | **Fixed**           |
 
 ## How to Verify
 
 ### Dev Server
+
 ```bash
 npm run dev
 # Visit: http://localhost:5173/wysiwyg
 ```
 
 ### Run Tests
+
 ```bash
 # All WYSIWYG tests
 npx playwright test e2e/wysiwyg-*.spec.ts
@@ -131,6 +145,7 @@ npx playwright test e2e/wysiwyg-worker-evaluation.spec.ts
 ```
 
 ### Manual Testing
+
 1. Type `# Budget Calculator` - should render as heading immediately
 2. Type `x = 5` - should show syntax highlighting
 3. Type `y = x + 10` - should show result `15` in gutter
@@ -140,10 +155,12 @@ npx playwright test e2e/wysiwyg-worker-evaluation.spec.ts
 ## Remaining Work
 
 ### High Priority
+
 - [ ] Fix markdown rendering (currently shows plain text) - marked.parseInline() issue
 - [ ] Improve cursor click positioning accuracy
 
 ### Low Priority
+
 - [ ] Clean up initial editor content for tests
 - [ ] Remove old server API endpoint (`/api/process`)
 - [ ] Add more edge case tests (empty lines, long text, special characters)

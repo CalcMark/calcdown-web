@@ -15,7 +15,7 @@ test.describe('WYSIWYG Editor - Server Token Inspection', () => {
 			await route.fulfill({ response, json });
 		});
 
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 
 		// Wait for initial evaluation to complete
@@ -30,7 +30,9 @@ test.describe('WYSIWYG Editor - Server Token Inspection', () => {
 			for (const [lineNum, tokens] of Object.entries(serverResponse.tokensByLine)) {
 				console.log(`\nLine ${lineNum}:`);
 				for (const token of tokens as any[]) {
-					console.log(`  Type: ${token.type}, Start: ${token.start}, End: ${token.end}, Value: "${token.value}"`);
+					console.log(
+						`  Type: ${token.type}, Start: ${token.start}, End: ${token.end}, Value: "${token.value}"`
+					);
 				}
 			}
 			console.log('======================\n');

@@ -28,11 +28,13 @@ rmdir src/lib/server          # If empty
 ## What Changed
 
 ### Before:
+
 ```
 User types → Server API (/api/process) → Server WASM → Response → UI
 ```
 
 ### Now:
+
 ```
 User types → Web Worker (client) → Client WASM → UI
 (No server involved!)
@@ -41,6 +43,7 @@ User types → Web Worker (client) → Client WASM → UI
 ## WASM File Location
 
 The `npm run wasm:fetch` script downloads to `src/lib/wasm/`, which is perfect because:
+
 - Vite bundles it for browser use
 - Both client and Web Worker can import it
 - Same location works for dev and production
@@ -48,6 +51,7 @@ The `npm run wasm:fetch` script downloads to `src/lib/wasm/`, which is perfect b
 ## When to Add Server Back
 
 Later when you add:
+
 - **User authentication** → Server endpoints for login/signup
 - **Document storage** → Server endpoints for save/load
 - **Collaboration** → WebSocket server for real-time sync

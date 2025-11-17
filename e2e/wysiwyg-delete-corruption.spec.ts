@@ -23,7 +23,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Delete Corruption Bug', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});
@@ -38,13 +38,10 @@ test.describe('WYSIWYG Editor - Delete Corruption Bug', () => {
 		// Position cursor between 'r' and 'y' in "monthly"
 		// "monthly" starts at position 0, 'r' is at position 5, cursor after 'r' is position 6
 		const cursorPos = 6; // After "monthl", before "y"
-		await textarea.evaluate(
-			(el: HTMLTextAreaElement, pos) => {
-				el.setSelectionRange(pos, pos);
-				el.focus();
-			},
-			cursorPos
-		);
+		await textarea.evaluate((el: HTMLTextAreaElement, pos) => {
+			el.setSelectionRange(pos, pos);
+			el.focus();
+		}, cursorPos);
 
 		await page.waitForTimeout(100);
 

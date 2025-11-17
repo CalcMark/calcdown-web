@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Line Hover Overlay', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container');
 	});
 

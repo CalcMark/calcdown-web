@@ -9,9 +9,11 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Rendering Accuracy', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
 	test('should render identifiers completely without splitting characters', async ({ page }) => {
@@ -65,7 +67,9 @@ test.describe('WYSIWYG Editor - Rendering Accuracy', () => {
 
 		// Create a case where indexOf could find wrong occurrences
 		await textarea.clear();
-		await textarea.fill('monthly_salary = $5000\nmonthly_bonus = $500\nmonthly_total = monthly_salary + monthly_bonus');
+		await textarea.fill(
+			'monthly_salary = $5000\nmonthly_bonus = $500\nmonthly_total = monthly_salary + monthly_bonus'
+		);
 
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1500);
 

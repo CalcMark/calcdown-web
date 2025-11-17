@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Precise Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 
 		// Clear any initial content
 		const textarea = page.locator('.raw-textarea');
@@ -76,7 +76,9 @@ test.describe('WYSIWYG Precise Alignment', () => {
 		expect(styles.marginBottom).toBe('0px');
 	});
 
-	test('each line should have identical height before and after syntax highlighting', async ({ page }) => {
+	test('each line should have identical height before and after syntax highlighting', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Type content
@@ -125,7 +127,9 @@ test.describe('WYSIWYG Precise Alignment', () => {
 		expect(firstLineBox!.y).toBe(textareaBox!.y + textareaPadding.top);
 	});
 
-	test('line height should be consistent across plain text, markdown, and calculations', async ({ page }) => {
+	test('line height should be consistent across plain text, markdown, and calculations', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 		await textarea.fill('Plain text\n# Markdown heading\nx = 5');
 		await page.waitForTimeout(500);
@@ -148,9 +152,11 @@ test.describe('WYSIWYG Precise Alignment', () => {
 		await page.waitForTimeout(500);
 
 		// Check that h1 inside markdown line has zero margin
-		const h1 = page.locator('.rendered-overlay h1, .rendered-overlay strong, .rendered-overlay em').first();
+		const h1 = page
+			.locator('.rendered-overlay h1, .rendered-overlay strong, .rendered-overlay em')
+			.first();
 
-		if (await h1.count() > 0) {
+		if ((await h1.count()) > 0) {
 			const styles = await h1.evaluate((el) => {
 				const computed = window.getComputedStyle(el);
 				return {
@@ -178,10 +184,7 @@ test.describe('WYSIWYG Precise Alignment', () => {
 		expect(lineBox).not.toBeNull();
 
 		// Click in middle of line
-		await page.mouse.click(
-			lineBox!.x + lineBox!.width / 2,
-			lineBox!.y + lineBox!.height / 2
-		);
+		await page.mouse.click(lineBox!.x + lineBox!.width / 2, lineBox!.y + lineBox!.height / 2);
 
 		await page.waitForTimeout(200);
 

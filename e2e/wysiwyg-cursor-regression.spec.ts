@@ -9,12 +9,16 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Cursor Positioning Regression Tests', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
-		await page.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 }).catch(() => {});
+		await page
+			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })
+			.catch(() => {});
 	});
 
-	test('clicking on first line should place cursor on first line, not several lines below', async ({ page }) => {
+	test('clicking on first line should place cursor on first line, not several lines below', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Set up multi-line content
@@ -84,7 +88,9 @@ test.describe('WYSIWYG Editor - Cursor Positioning Regression Tests', () => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create 10 lines to make vertical positioning errors obvious
-		const lines = Array.from({ length: 10 }, (_, i) => `line_${i + 1} = ${(i + 1) * 100}`).join('\n');
+		const lines = Array.from({ length: 10 }, (_, i) => `line_${i + 1} = ${(i + 1) * 100}`).join(
+			'\n'
+		);
 		await textarea.fill(lines);
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1500);
 
@@ -148,7 +154,9 @@ test.describe('WYSIWYG Editor - Cursor Positioning Regression Tests', () => {
 		expect(cursorPos).toBeLessThanOrEqual(expectedEnd + 1);
 	});
 
-	test('clicking on line with calculation result should position cursor in source text, not in result', async ({ page }) => {
+	test('clicking on line with calculation result should position cursor in source text, not in result', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.fill('result = 100 + 200');
@@ -201,7 +209,9 @@ test.describe('WYSIWYG Editor - Cursor Positioning Regression Tests', () => {
 		}
 	});
 
-	test('clicking on different X positions in same line should move cursor horizontally', async ({ page }) => {
+	test('clicking on different X positions in same line should move cursor horizontally', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Use a calculation line so it has token spans for better click detection
@@ -238,7 +248,9 @@ test.describe('WYSIWYG Editor - Cursor Positioning Regression Tests', () => {
 		const textarea = page.locator('.raw-textarea');
 
 		// Create enough lines to require scrolling
-		const lines = Array.from({ length: 50 }, (_, i) => `line_${i + 1} = ${(i + 1) * 10}`).join('\n');
+		const lines = Array.from({ length: 50 }, (_, i) => `line_${i + 1} = ${(i + 1) * 10}`).join(
+			'\n'
+		);
 		await textarea.fill(lines);
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 2000);
 
@@ -273,7 +285,9 @@ test.describe('WYSIWYG Editor - Cursor Positioning Regression Tests', () => {
 		expect(cursorPos).toBeLessThanOrEqual(expectedEnd + 1);
 	});
 
-	test('clicking near token boundaries should place cursor at correct position', async ({ page }) => {
+	test('clicking near token boundaries should place cursor at correct position', async ({
+		page
+	}) => {
 		const textarea = page.locator('.raw-textarea');
 
 		await textarea.fill('result = total + bonus');

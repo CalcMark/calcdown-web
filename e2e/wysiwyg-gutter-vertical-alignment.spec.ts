@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Gutter Vertical Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/wysiwyg');
+		await page.goto('/edit');
 		await page.waitForTimeout(500);
 	});
 
@@ -128,9 +128,7 @@ test.describe('WYSIWYG Gutter Vertical Alignment', () => {
 		expect(contentPaddingTop).toBe('0px');
 	});
 
-	test('calculation result should appear at same height as calculation line', async ({
-		page
-	}) => {
+	test('calculation result should appear at same height as calculation line', async ({ page }) => {
 		const textarea = page.locator('.raw-textarea');
 		const overlay = page.locator('.rendered-overlay');
 		const gutter = page.locator('.gutter');

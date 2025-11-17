@@ -73,7 +73,7 @@
 			{onTab}
 			{onBackspaceAtStart}
 			{onBlur}
-			onEscape={onEscape}
+			{onEscape}
 			onPreviewClick={handlePreviewClick}
 		/>
 	{:else}
@@ -86,7 +86,7 @@
 			{onTab}
 			{onBackspaceAtStart}
 			{onBlur}
-			onEscape={onEscape}
+			{onEscape}
 			onPreviewClick={handlePreviewClick}
 		/>
 	{/if}

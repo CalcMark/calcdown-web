@@ -453,7 +453,9 @@ describe('CalcMarkDocument - Core State Management', () => {
 	describe('Integration - Full Workflow', () => {
 		it('simulates complete edit → evaluate → render cycle', () => {
 			// 1. Initialize with document
-			const doc = new CalcMarkDocument('# Budget\n\nincome = $5000\nexpenses = $3000\nleftover = income - expenses');
+			const doc = new CalcMarkDocument(
+				'# Budget\n\nincome = $5000\nexpenses = $3000\nleftover = income - expenses'
+			);
 
 			expect(doc.getLineCount()).toBe(5);
 
