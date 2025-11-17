@@ -44,17 +44,53 @@ export function findTextNodeAtOffset(
 }
 
 /**
+ * Get the actual font size in pixels from computed styles
+ */
+function getFontSize(element: Element): number {
+	const computedStyle = window.getComputedStyle(element);
+	const fontSize = computedStyle.fontSize;
+	return parseFloat(fontSize) || 16; // Fallback to 16px if parsing fails
+}
+
+/**
  * Calculate cursor position using Range API
+ *
+ * CRITICAL: Overlay doesn't scroll, so we use textarea's scroll position
+ * to calculate the cursor's position relative to the visible viewport
  */
 export function calculateCursorPosition(
 	lineElement: Element,
 	offset: number,
-	overlayElement: HTMLElement
+	overlayElement: HTMLElement,
+	textareaElement?: HTMLElement
 ): CursorPosition | null {
 	const range = document.createRange();
 	const textNode = findTextNodeAtOffset(lineElement, offset);
 
-	if (!textNode) return null;
+	// Get the actual font size from the line element (respects rem/em/user zoom)
+	const fontSize = getFontSize(lineElement);
+	// Cursor height MUST match font size exactly to align with text
+	// Using line-height would make it too tall (28px vs 16px)
+	const cursorHeight = fontSize;
+
+	// Cursor positioning:
+	// - getBoundingClientRect() returns viewport (screen) coordinates
+	// - Cursor is absolutely positioned in .editor-area
+	// - We calculate position relative to overlay's top-left corner
+	// - NO scroll offset needed because overlay doesn't scroll - its content stays fixed
+
+	// Handle blank lines: if no text node found, position cursor at start of line
+	if (!textNode) {
+		// For blank lines, use the line element's position but with calculated text height
+		const lineRect = lineElement.getBoundingClientRect();
+		const overlayRect = overlayElement.getBoundingClientRect();
+
+		return {
+			x: lineRect.left - overlayRect.left,
+			y: lineRect.top - overlayRect.top,
+			height: cursorHeight
+		};
+	}
 
 	range.setStart(textNode.node, textNode.offset);
 	range.collapse(true);
@@ -63,9 +99,9 @@ export function calculateCursorPosition(
 	const overlayRect = overlayElement.getBoundingClientRect();
 
 	return {
-		x: rect.left - overlayRect.left + overlayElement.scrollLeft,
-		y: rect.top - overlayRect.top + overlayElement.scrollTop,
-		height: rect.height || 28
+		x: rect.left - overlayRect.left,
+		y: rect.top - overlayRect.top,
+		height: cursorHeight
 	};
 }
 
@@ -129,18 +165,31 @@ export function getCharacterOffsetFromClick(element: Element, clickX: number): n
 
 /**
  * Calculate line index from Y coordinate
+ * Dynamically calculates line height and padding from CSS variables
  * @param clickY - Y coordinate relative to the overlay element (NOT viewport)
  * @param overlayScrollTop - Current scroll position of overlay
- * @param lineHeight - Height of each line in pixels
- * @param padding - Top padding of overlay in pixels
+ * @param overlayElement - The overlay element to read CSS variables from
  */
 export function getLineIndexFromY(
 	clickY: number,
 	overlayScrollTop: number,
-	lineHeight: number = 28,
-	padding: number = 40
+	overlayElement?: HTMLElement
 ): number {
-	// clickY is relative to overlay top, add scroll to get position in full document
+	// Get actual values from CSS variables and computed styles
+	let lineHeight = 28; // Fallback
+	let padding = 40; // Fallback
+
+	if (overlayElement) {
+		const computedStyle = window.getComputedStyle(overlayElement);
+		const fontSize = parseFloat(computedStyle.fontSize) || 16;
+		const lineHeightRatio = parseFloat(computedStyle.lineHeight) / fontSize || 1.75;
+		lineHeight = fontSize * lineHeightRatio;
+
+		// Get padding from CSS variable or computed style
+		const paddingTop = computedStyle.paddingTop;
+		padding = parseFloat(paddingTop) || 40;
+	}
+
 	const adjustedY = clickY + overlayScrollTop - padding;
 	return Math.floor(adjustedY / lineHeight);
 }

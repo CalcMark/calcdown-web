@@ -4,8 +4,7 @@ This is a website for CalcDown Editor.
 The editor relies on the WASM created by the CalcMark implementation at https://github.com/CalcMark/go-calcmark.
 
 - Front end and server code: SvelteKit 5 with TypeScript
-- Data storage: Supabase.
-- Hosting: Vercel.
+- Data storage: Supabase. Hosting: Vercel.
 
 ## Development Guidelines
 
@@ -34,9 +33,7 @@ The editor relies on the WASM created by the CalcMark implementation at https://
   Do not spin up one-off scripts: use vitest or Playwright, or both.
 - Prefer purely functional code that can be easily tested without side efforts.
 - Keep CSS as close to the Svelte component using it as possible.
-  For example, src/lib/components/CalcToken.svelte should include any CSS necessary for styling individual tokens.
-- Always run tests and fix errors before declaring a task to be complete.
-- Keep code in $lib/components and $lib/utils or server routes unless code should be global in nature.
+  For example, src/lib/components/CalcToken.svelte should include any CSS necessary for styling individual tokens. - Always run tests and fix errors before declaring a task to be complete. Keep code in $lib/components and $lib/utils or server routes unless code should be global in nature.
 
 ### Svelte 5 Reactivity Best Practices
 
@@ -70,4 +67,12 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 #### 4. playground-link
 
 Generates a Svelte Playground link with the provided code.
-After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+After completing the code, ask the user if they want a playground link.
+Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+### UI and UX
+
+- The CalcDown editor should scale seamlessly with different fonts, spacing, margins, so while tests may be pixel perfect, the code should use relative units ratio calculations for things like line spacing and vertical alignment.
+- Use screen-independent size and scale units wherever possible in CSS. And use CSS variables and calculations to determine relative dimensions and sizes.
+- The virtual contenteditable and visual rendered output in the editor must share precisely the same font, line, and other alignment so that there's no drift between the user's editing experience and what is displayed on screen, e.g., drifting cursors, edit position out of sync with cursor position.
+- Never ask the developer to check console logs and take screenshots. This is the job of a unit, integration, or e2e test that is reproducible.

@@ -195,6 +195,9 @@ export async function processCalcMark(input: string) {
 
 	// Step 3: Evaluate (single pass for entire document using evaluateDocument)
 	// This function handles markdown + calculations properly by classifying first
+	// CRITICAL: Reset context before evaluation to ensure fresh variable context
+	// Without this, variables from previous evaluations persist and cause stale results
+	api.resetContext();
 	const evalResult = api.evaluateDocument(input, true);
 	if (evalResult.error) {
 		console.log('[processCalcMark] EVALUATION ERROR:', evalResult.error);

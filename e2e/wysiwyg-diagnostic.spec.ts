@@ -149,4 +149,56 @@ test.describe('WYSIWYG Editor - Diagnostic', () => {
 
 		expect(text).toContain('monthly_salary');
 	});
+
+	test('diagnostic indicator should appear on correct line when hovering', async ({ page }) => {
+		// Test diagnostic positioning with hover overlay
+		// Look for any line with a diagnostic in the default content
+
+		const overlay = page.locator('.rendered-overlay');
+		const lines = overlay.locator('.line');
+
+		await page.waitForTimeout(1000);
+
+		const lineCount = await lines.count();
+		console.log(`Total lines: ${lineCount}`);
+
+		// Find a line with a diagnostic by checking all lines
+		let lineWithDiagnostic = -1;
+		let lineWithoutDiagnostic = -1;
+
+		for (let i = 0; i < Math.min(lineCount, 20); i++) {
+			const line = lines.nth(i);
+			await line.hover();
+			await page.waitForTimeout(200);
+
+			const diagnostic = page.locator('.diagnostic-indicator');
+			const hasDiagnostic = await diagnostic.isVisible().catch(() => false);
+
+			const text = await line.textContent();
+			const lineNum = await line.getAttribute('data-line');
+
+			console.log(`Line ${lineNum}: "${text?.substring(0, 50)}" - diagnostic: ${hasDiagnostic}`);
+
+			if (hasDiagnostic && lineWithDiagnostic === -1) {
+				lineWithDiagnostic = i;
+
+				const hoverOverlay = page.locator('.hover-overlay');
+				const hoverTop = await hoverOverlay.evaluate((el) => window.getComputedStyle(el).top);
+				console.log(`Found diagnostic on line ${lineNum}, hover overlay at: ${hoverTop}`);
+
+				// Take screenshot
+				await page.screenshot({ path: `test-results/diagnostic-found-line${lineNum}.png` });
+			} else if (!hasDiagnostic && lineWithoutDiagnostic === -1) {
+				lineWithoutDiagnostic = i;
+			}
+
+			if (lineWithDiagnostic >= 0 && lineWithoutDiagnostic >= 0) {
+				break;
+			}
+		}
+
+		// Basic assertion - we should have found at least one line with a diagnostic
+		expect(lineWithDiagnostic).toBeGreaterThanOrEqual(0);
+		console.log(`\nTest complete - found diagnostic on line index ${lineWithDiagnostic}`);
+	});
 });

@@ -1,0 +1,54 @@
+/**
+ * CalcMark Syntax Highlighting Theme
+ * Centralized color definitions for token categories
+ * Token classification happens in wysiwygRenderer.ts via getTokenClass()
+ */
+
+:root {
+	/* Token category colors */
+	--cm-literal: #7c3aed; /* Purple for numbers, currency, quantities, booleans */
+	--cm-operator: #64748b; /* Muted gray for operators */
+	--cm-assign: #f59e0b; /* Orange for assignment = */
+	--cm-keyword: #ec4899; /* Pink for control flow keywords */
+	--cm-function: #0ea5e9; /* Blue for functions */
+	--cm-punctuation: #64748b; /* Muted gray for parens, commas */
+	--cm-identifier: #1e293b; /* Normal text for variable names */
+}
+
+/* Literals - numbers, currency, quantities, booleans */
+.cm-literal {
+	color: var(--cm-literal);
+}
+
+/* Operators - arithmetic, comparison, logical */
+.cm-operator {
+	color: var(--cm-operator);
+}
+
+/* Assignment operator - special highlighting */
+.cm-assign {
+	color: var(--cm-assign);
+	font-weight: 600;
+}
+
+/* Keywords - control flow and declarations */
+.cm-keyword {
+	color: var(--cm-keyword);
+	font-weight: 600;
+}
+
+/* Functions */
+.cm-function {
+	color: var(--cm-function);
+	font-weight: 500;
+}
+
+/* Punctuation - parentheses, commas, etc. */
+.cm-punctuation {
+	color: var(--cm-punctuation);
+}
+
+/* Identifiers - variable names */
+.cm-identifier {
+	color: var(--cm-identifier);
+}

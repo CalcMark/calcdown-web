@@ -6,6 +6,7 @@
 import { marked } from 'marked';
 import type { CalcMarkDocument } from '$lib/state/CalcMarkDocument';
 import { runeToUtf16Position } from '$lib/utils/unicode';
+import { getTokenClassName } from '$lib/utils/tokenClassification';
 
 interface Line {
 	lineNumber: number;
@@ -102,8 +103,9 @@ export function renderCalculationLine(line: Line, doc: CalcMarkDocument): string
 				html += escapeHtml(lineText.substring(currentPos, tokenStart));
 			}
 
-			// Add the token with syntax highlighting
-			html += `<span class="token-${token.type.toLowerCase()}">${escapeHtml(tokenText)}</span>`;
+			// Add the token with semantic CSS class
+			const cssClass = getTokenClassName(token.type);
+			html += `<span class="${cssClass}">${escapeHtml(tokenText)}</span>`;
 			currentPos = tokenEnd;
 		}
 

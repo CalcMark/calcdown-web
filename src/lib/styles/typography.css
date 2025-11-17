@@ -1,0 +1,66 @@
+/**
+ * Typography Configuration
+ * Centralized font definitions for the CalcDown application
+ *
+ * Current font: Google Roboto
+ * Weights: 300 (Light), 400 (Regular), 700 (Bold)
+ * Styles: Normal and Italic for each weight
+ *
+ * To change the application font, update the @import and --font-family variable below.
+ * For locale-specific fonts, additional @import statements can be added conditionally.
+ */
+
+/* Import Google Fonts - Roboto with 3 weights + italic variants */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+
+:root {
+	/* Font family - single source of truth */
+	--font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+
+	/* Font weights - semantic names for consistency */
+	--font-weight-light: 300;
+	--font-weight-regular: 400;
+	--font-weight-bold: 700;
+
+	/* Font rendering optimization for cross-browser quality */
+	--font-smoothing: antialiased;
+	--text-rendering: optimizeLegibility;
+}
+
+/* Global font application with high-quality rendering */
+* {
+	font-family: var(--font-family);
+	-webkit-font-smoothing: var(--font-smoothing);
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: var(--text-rendering);
+}
+
+/* Ensure inputs and textareas inherit font family */
+input,
+textarea,
+button,
+select {
+	font-family: var(--font-family);
+}
+
+/* Base body typography */
+body {
+	font-family: var(--font-family);
+	font-weight: var(--font-weight-regular);
+	-webkit-font-smoothing: var(--font-smoothing);
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: var(--text-rendering);
+}
+
+/* Utility classes for font weights */
+.font-light {
+	font-weight: var(--font-weight-light);
+}
+
+.font-regular {
+	font-weight: var(--font-weight-regular);
+}
+
+.font-bold {
+	font-weight: var(--font-weight-bold);
+}

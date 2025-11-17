@@ -47,6 +47,7 @@ export interface Line {
 	tokens?: Token[];
 	diagnostics?: Diagnostic[];
 	calculationResult?: EvaluationResult;
+	version?: number; // Incremented when line data changes (for Svelte reactivity)
 }
 
 export interface DocumentState {
@@ -103,7 +104,8 @@ export class CalcMarkDocument {
 		return text.split('\n').map((content, index) => ({
 			lineNumber: index,
 			rawContent: content,
-			classification: null
+			classification: null,
+			version: 0
 		}));
 	}
 
@@ -115,7 +117,25 @@ export class CalcMarkDocument {
 
 	updateRawText(newText: string): void {
 		this.state.rawText = newText;
-		this.state.lines = this.parseLines(newText);
+
+		// Parse new lines
+		const newLines = this.parseLines(newText);
+
+		// Preserve existing metadata (classification, tokens, diagnostics, results) for unchanged lines
+		// This prevents syntax highlighting from disappearing while typing
+		// IMPORTANT: Reuse old Line objects for unchanged lines to prevent Svelte re-renders
+		const oldLines = this.state.lines;
+
+		for (let i = 0; i < newLines.length; i++) {
+			if (i < oldLines.length && oldLines[i].rawContent === newLines[i].rawContent) {
+				// Line content hasn't changed - reuse the old Line object entirely
+				// This prevents Svelte from re-rendering this line
+				newLines[i] = oldLines[i];
+			}
+			// If line content changed or is new, use the new Line object (classification: null)
+		}
+
+		this.state.lines = newLines;
 	}
 
 	getLines(): Line[] {
@@ -131,7 +151,12 @@ export class CalcMarkDocument {
 	updateClassifications(classifications: Array<{ lineType: 'MARKDOWN' | 'CALCULATION' | 'BLANK'; line: string }>): void {
 		classifications.forEach((classification, index) => {
 			if (this.state.lines[index]) {
-				this.state.lines[index].classification = classification.lineType;
+				const line = this.state.lines[index];
+				// Only increment version if classification actually changed
+				if (line.classification !== classification.lineType) {
+					line.classification = classification.lineType;
+					line.version = (line.version || 0) + 1;
+				}
 			}
 		});
 	}
@@ -140,7 +165,9 @@ export class CalcMarkDocument {
 
 	updateTokens(lineNumber: number, tokens: Token[]): void {
 		if (this.state.lines[lineNumber]) {
-			this.state.lines[lineNumber].tokens = tokens;
+			const line = this.state.lines[lineNumber];
+			line.tokens = tokens;
+			line.version = (line.version || 0) + 1;
 		}
 	}
 
@@ -150,29 +177,64 @@ export class CalcMarkDocument {
 		for (const [lineStr, diagnostics] of Object.entries(diagnosticsByLine)) {
 			const lineNumber = Number(lineStr);
 			if (this.state.lines[lineNumber]) {
-				this.state.lines[lineNumber].diagnostics = diagnostics;
+				const line = this.state.lines[lineNumber];
+				line.diagnostics = diagnostics;
+				line.version = (line.version || 0) + 1;
 			}
 		}
 	}
 
 	// === Evaluation Results (from server) ===
 
+	/**
+	 * Convert server line numbers to document line numbers.
+	 *
+	 * IMPORTANT: Different server endpoints return different line number formats:
+	 * - evaluateDocument(): Returns 1-indexed line numbers (OriginalLine starts at 1)
+	 * - validate() (diagnostics): Returns 0-indexed line numbers (starts at 0)
+	 * - tokensByLine: Server-built with i+1, so 1-indexed
+	 *
+	 * @param serverLineNumber - Line number from server (check source to determine if 0 or 1 indexed)
+	 * @param isOneIndexed - true if server uses 1-indexed (evaluateDocument, tokensByLine), false if 0-indexed (validate/diagnostics)
+	 * @param viewportOffset - First line number in document (0-indexed) that corresponds to line 1 in viewport
+	 * @returns Document line number (0-indexed)
+	 */
+	static serverLineToDocumentLine(serverLineNumber: number, isOneIndexed: boolean, viewportOffset: number): number {
+		return isOneIndexed
+			? serverLineNumber - 1 + viewportOffset  // Convert 1-indexed to 0-indexed, then add offset
+			: serverLineNumber + viewportOffset;      // Already 0-indexed, just add offset
+	}
+
 	updateEvaluationResults(
 		results: EvaluationResult[],
 		variableContext: Record<string, EvaluationResult>,
 		offset: number
 	): void {
-		// Clear previous calculation results
+		// Clear previous calculation results and increment version for lines that had results
 		this.state.lines.forEach((line) => {
-			line.calculationResult = undefined;
+			if (line.calculationResult !== undefined) {
+				line.calculationResult = undefined;
+				line.version = (line.version || 0) + 1;
+			}
 		});
 
 		// Update with new results
-		// NOTE: Server returns 1-indexed line numbers, convert to 0-indexed
+		// NOTE: evaluateDocument() returns 1-indexed line numbers
 		results.forEach((result) => {
-			const lineNumber = result.OriginalLine - 1 + offset;
-			if (this.state.lines[lineNumber]) {
-				this.state.lines[lineNumber].calculationResult = result;
+			const documentLineNumber = CalcMarkDocument.serverLineToDocumentLine(result.OriginalLine, true, offset);
+			if (this.state.lines[documentLineNumber]) {
+				const line = this.state.lines[documentLineNumber];
+				const oldValue = line.calculationResult?.Value?.Value;
+				const newValue = result.Value?.Value;
+
+				// Always update the result
+				line.calculationResult = result;
+
+				// Increment version if the value actually changed
+				// This ensures dependent calculations re-render when upstream values change
+				if (oldValue !== newValue) {
+					line.version = (line.version || 0) + 1;
+				}
 			}
 		});
 
@@ -210,11 +272,11 @@ export class CalcMarkDocument {
 
 	getTextForEvaluation(): { text: string; offset: number } {
 		const range = this.getEvaluationRange();
-		const lines = this.state.lines.slice(range.start, range.end + 1).map((l) => l.rawContent);
+		const viewportLines = this.state.lines.slice(range.start, range.end + 1).map((l) => l.rawContent);
 
 		return {
-			text: lines.join('\n'),
-			offset: range.start
+			text: viewportLines.join('\n'),
+			offset: range.start // First line number in document (0-indexed) that corresponds to line 1 in viewport
 		};
 	}
 
@@ -226,6 +288,54 @@ export class CalcMarkDocument {
 
 	getCursor(): { line: number; offset: number } | null {
 		return this.state.cursor;
+	}
+
+	/**
+	 * Update cursor position from absolute character position in the textarea.
+	 *
+	 * @param absolutePosition - Absolute character position in the entire document
+	 * @param recalculateLine - If true, recalculate which line the cursor is on.
+	 *                          If false, keep cursor on same line and only update offset.
+	 *                          This prevents cursor jumping when typing regular characters.
+	 * @returns The current cursor line and offset
+	 */
+	updateCursorFromAbsolutePosition(absolutePosition: number, recalculateLine: boolean = true): { line: number; offset: number } {
+		let line: number;
+		let offset: number;
+
+		if (recalculateLine || this.state.cursor === null) {
+			// Explicit navigation or first time: recalculate line number
+			const result = this.getLineFromPosition(absolutePosition);
+			line = result.line;
+			offset = result.offset;
+		} else {
+			// Typing on same line: keep line number, only update offset
+			line = this.state.cursor.line;
+
+			// Validate that the line still exists
+			if (line >= this.state.lines.length) {
+				// Line was deleted, fallback to recalculate
+				const result = this.getLineFromPosition(absolutePosition);
+				line = result.line;
+				offset = result.offset;
+			} else {
+				// Calculate offset within the current line
+				const lineStart = this.getAbsolutePosition(line, 0);
+				offset = absolutePosition - lineStart;
+
+				// Validate offset is within line bounds
+				const lineLength = this.state.lines[line].rawContent.length;
+				if (offset < 0 || offset > lineLength) {
+					// Offset out of bounds, fallback to recalculate
+					const result = this.getLineFromPosition(absolutePosition);
+					line = result.line;
+					offset = result.offset;
+				}
+			}
+		}
+
+		this.state.cursor = { line, offset };
+		return { line, offset };
 	}
 
 	// === Utilities ===
