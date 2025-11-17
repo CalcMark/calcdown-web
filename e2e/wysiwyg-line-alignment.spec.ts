@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('WYSIWYG Editor - Line Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/simple');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});

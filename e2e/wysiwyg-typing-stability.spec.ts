@@ -29,7 +29,7 @@ function randomPause(min = 100, max = 300): number {
  */
 test.describe('WYSIWYG Editor - Typing Stability (CRITICAL)', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/empty');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});

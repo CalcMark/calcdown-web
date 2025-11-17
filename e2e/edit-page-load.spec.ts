@@ -6,10 +6,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('/edit Page Load', () => {
 	test.beforeEach(async ({ page }) => {
-		// Listen for console logs
-		page.on('console', (msg) => console.log('BROWSER:', msg.text()));
-
-		await page.goto('/edit');
+		await page.goto('/test/budget');
 		// Wait a bit for WASM worker to initialize
 		await page.waitForTimeout(2000);
 	});

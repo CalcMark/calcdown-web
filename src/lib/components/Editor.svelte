@@ -15,14 +15,16 @@
 	import { renderLine, formatValue } from '$lib/utils/wysiwygRenderer';
 	import { onMount } from 'svelte';
 	import LineHoverOverlay from './LineHoverOverlay.svelte';
-	import { getWorkerManager } from '$lib/client/calcmarkWorkerManager';
+	import { createWorkerManager } from '$lib/client/calcmarkWorkerManager';
 
 	let { initialText = '' } = $props();
 
 	const doc = new CalcMarkDocument(initialText);
 	const lineContext = new LineContext(doc);
 	const cursorManager = new CursorManager();
-	const workerManager = getWorkerManager();
+	// Each Editor gets its own dedicated worker for predictable initialization
+	// Worker will be created in onMount and terminated in cleanup
+	let workerManager = $state<ReturnType<typeof createWorkerManager> | null>(null);
 
 	let textareaElement = $state<HTMLTextAreaElement | null>(null);
 	let overlayElement = $state<HTMLDivElement | null>(null);
@@ -66,6 +68,10 @@
 	let isUpdatingFromEvaluation = $state(false);
 
 	onMount(() => {
+		// Create dedicated worker for this editor instance
+		// Each component gets its own worker for predictable initialization
+		workerManager = createWorkerManager();
+
 		// Set initial textarea value programmatically
 		// This is necessary because we removed bind:value's two-way binding
 		if (textareaElement) {
@@ -81,8 +87,15 @@
 			cursorManager.init(textareaElement, overlayElement, doc);
 		}
 
-		// Initial evaluation
-		evaluateDocument();
+		// Wait for worker to be ready before initial evaluation
+		// This prevents race condition where editor loads without syntax highlighting
+		workerManager.waitForInit().then(() => {
+			evaluateDocument();
+		}).catch((error) => {
+			console.error('[Editor] Failed to initialize worker:', error);
+			// Continue anyway - try evaluating (will fail gracefully)
+			evaluateDocument();
+		});
 
 		// Sync scroll between textarea, overlay, and gutter
 		if (textareaElement && overlayElement && gutterElement) {
@@ -158,7 +171,9 @@
 		return () => {
 			cursorManager.destroy();
 			// Clean up Web Worker
-			workerManager.terminate();
+			if (workerManager) {
+				workerManager.terminate();
+			}
 		};
 	});
 
@@ -253,9 +268,7 @@
 	function scheduleEvaluation() {
 		if (debounceTimer) clearTimeout(debounceTimer);
 
-		console.log('[WYSIWYG] scheduleEvaluation: will evaluate in', USER_INPUT_DEBOUNCE_MS, 'ms');
 		debounceTimer = setTimeout(() => {
-			console.log('[WYSIWYG] scheduleEvaluation: timeout fired, calling evaluateDocument()');
 			evaluateDocument();
 		}, USER_INPUT_DEBOUNCE_MS);
 	}
@@ -279,7 +292,6 @@
 		if (timeSinceLastInput < MIN_IDLE_TIME) {
 			// User is actively typing - delay the update
 			const delay = MIN_IDLE_TIME - timeSinceLastInput;
-			console.log(`[WYSIWYG] Delaying render update by ${delay}ms (user is typing)`);
 
 			renderUpdateTimer = setTimeout(() => {
 				// Recursively check if user is still typing
@@ -287,7 +299,6 @@
 			}, delay);
 		} else {
 			// User has stopped typing - safe to render
-			console.log('[WYSIWYG] Applying render update (user idle)');
 			updateFn();
 			renderUpdateTimer = null;
 		}
@@ -308,25 +319,24 @@
 	async function evaluateDocument() {
 		// Skip evaluation if user is actively typing
 		if (isUpdatingFromUser) {
-			console.log('[WYSIWYG] evaluateDocument: skipping (user is typing)');
 			return;
 		}
 
-		console.log('[WYSIWYG] evaluateDocument: starting');
+		// Skip evaluation if worker not yet initialized
+		if (!workerManager) {
+			return;
+		}
+
 		isUpdatingFromEvaluation = true;
 
 		// Store current cursor position
 		const currentCursorPos = textareaElement?.selectionStart || 0;
 
 		try {
-			const { text, offset } = doc.getTextForEvaluation();
+			const { text, offset} = doc.getTextForEvaluation();
 
 			// Use Web Worker for instant evaluation (no network round-trip!)
 			const results = await workerManager.evaluate(text, offset);
-			console.log('[WYSIWYG] evaluateDocument: got results', {
-				evaluationResults: results.evaluationResults,
-				diagnostics: results.diagnostics
-			});
 
 			// Don't fade during active editing - it feels sluggish
 			// overlayOpacity = 0.7;  // Removed - causes confusion during typing/deleting
@@ -372,9 +382,6 @@
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any -- WASM worker diagnostic structures are dynamic
 				adjustedDiagnostics[documentLineNumber] = diags as any[];
 				changedLineNumbers.add(documentLineNumber);
-				console.log(
-					`[WYSIWYG] Diagnostic mapping: server line ${serverLineNumber} (0-indexed from WASM) -> document line ${documentLineNumber} (0-indexed), offset=${offset}`
-				);
 			}
 			doc.updateDiagnostics(adjustedDiagnostics);
 
@@ -389,11 +396,6 @@
 				);
 				changedLineNumbers.add(documentLineNumber);
 			}
-
-			console.log(
-				'[WYSIWYG] Changed lines:',
-				Array.from(changedLineNumbers).sort((a, b) => a - b)
-			);
 
 			// CRITICAL: Schedule the DOM update using requestAnimationFrame
 			// This prevents dropped characters during fast typing by ensuring

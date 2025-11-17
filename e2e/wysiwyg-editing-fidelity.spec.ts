@@ -18,7 +18,7 @@ function randomDelay(min = 30, max = 150): number {
 
 test.describe('WYSIWYG Editor - Editing Fidelity (CRITICAL)', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/empty');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});

@@ -11,7 +11,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Cursor - Positioning Accuracy', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/simple');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');

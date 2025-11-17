@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Overlay Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/budget');
 		// Wait for initial load
 		await page.waitForTimeout(500);
 	});

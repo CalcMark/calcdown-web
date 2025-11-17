@@ -7,7 +7,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 test.describe('WYSIWYG Editor - Typing Performance', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/budget');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page
 			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })

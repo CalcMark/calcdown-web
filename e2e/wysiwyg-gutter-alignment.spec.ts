@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('WYSIWYG Editor - Gutter Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/budget');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page
 			.waitForSelector('.evaluating-indicator', { state: 'hidden', timeout: 5000 })

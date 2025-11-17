@@ -78,7 +78,6 @@ export async function initCalcMark(): Promise<void> {
 			}
 
 			wasmInitialized = true;
-			console.log('✓ CalcMark WASM initialized in browser');
 		} catch (error) {
 			wasmInitPromise = null;
 			throw error;

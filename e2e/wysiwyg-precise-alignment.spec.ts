@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG Precise Alignment', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/simple');
 
 		// Clear any initial content
 		const textarea = page.locator('.raw-textarea');

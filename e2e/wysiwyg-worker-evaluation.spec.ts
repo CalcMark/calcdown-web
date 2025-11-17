@@ -4,58 +4,41 @@ import { test, expect } from '@playwright/test';
  * Test that Web Worker successfully loads and evaluates CalcMark
  */
 
-interface TestPage {
-	__testLogs?: string[];
-	__testErrors?: string[];
-}
-
 test.describe('WYSIWYG Web Worker Evaluation', () => {
 	test.beforeEach(async ({ page }) => {
-		// Collect console logs and errors
-		const logs: string[] = [];
+		// Collect page errors only (not console logs)
 		const errors: string[] = [];
-
-		page.on('console', (msg) => {
-			const text = msg.text();
-			logs.push(text);
-			if (msg.type() === 'error') {
-				errors.push(text);
-			}
-		});
 
 		page.on('pageerror', (error) => {
 			errors.push(error.message);
 		});
 
-		// Store logs for inspection
-		(page as TestPage).__testLogs = logs;
-		(page as TestPage).__testErrors = errors;
+		page.on('console', (msg) => {
+			if (msg.type() === 'error') {
+				errors.push(msg.text());
+			}
+		});
 
-		await page.goto('/edit');
+		// Store errors for inspection
+		(page as { __testErrors?: string[] }).__testErrors = errors;
+
+		await page.goto('/test/budget');
 	});
 
 	test('should initialize Web Worker without errors', async ({ page }) => {
-		// Wait for worker initialization
+		// Wait for initial render and worker to process
 		await page.waitForTimeout(1000);
 
-		const testPage = page as TestPage;
-		const errors = testPage.__testErrors || [];
-		const logs = testPage.__testLogs || [];
+		// Check that gutter results are present (proves worker initialized and evaluated)
+		const gutterResults = page.locator('.gutter-result');
+		const count = await gutterResults.count();
 
-		// Check for worker errors
-		const workerErrors = errors.filter(
-			(e: string) => e.includes('[Worker]') || e.includes('[WorkerManager]')
-		);
+		// Budget fixture has multiple calculations, should have results
+		expect(count).toBeGreaterThan(0);
 
-		if (workerErrors.length > 0) {
-			console.log('Worker errors found:', workerErrors);
-			console.log(
-				'All logs:',
-				logs.filter((l: string) => l.includes('[Worker]') || l.includes('[WorkerManager]'))
-			);
-		}
-
-		expect(workerErrors).toHaveLength(0);
+		// Verify no errors occurred
+		const errors = (page as { __testErrors?: string[] }).__testErrors || [];
+		expect(errors).toHaveLength(0);
 	});
 
 	test('should initialize CalcMark WASM in worker', async ({ page }) => {
@@ -67,20 +50,12 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		// Wait for evaluation
 		await page.waitForTimeout(1000);
 
-		const testPage = page as TestPage;
-		const logs = testPage.__testLogs || [];
+		// Verify gutter shows result (proves WASM initialized and evaluated)
+		const gutterResult = page.locator('.gutter-result').first();
+		await expect(gutterResult).toBeVisible();
 
-		// Should see worker initialization logs
-		const hasWorkerInit = logs.some(
-			(l: string) =>
-				l.includes('CalcMark worker initialized') || l.includes('CalcMark WASM initialized')
-		);
-
-		if (!hasWorkerInit) {
-			console.log('Expected worker init logs not found. All logs:', logs);
-		}
-
-		expect(hasWorkerInit).toBe(true);
+		const text = await gutterResult.textContent();
+		expect(text).toContain('5');
 	});
 
 	test('should evaluate calculations and return results', async ({ page }) => {
@@ -91,22 +66,16 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		// Wait for evaluation (debounce + processing)
 		await page.waitForTimeout(1000);
 
-		const testPage = page as TestPage;
-		const logs = testPage.__testLogs || [];
+		// Check for gutter results (proves evaluation completed)
+		const gutterResults = page.locator('.gutter-result');
+		const count = await gutterResults.count();
 
-		// Should see evaluation complete log
-		const hasEvaluationComplete = logs.some(
-			(l: string) => l.includes('Evaluation complete') || l.includes('got results')
-		);
+		expect(count).toBe(3); // x, y, total
 
-		if (!hasEvaluationComplete) {
-			console.log(
-				'Evaluation logs:',
-				logs.filter((l: string) => l.includes('evaluat') || l.includes('result'))
-			);
-		}
-
-		expect(hasEvaluationComplete).toBe(true);
+		// Verify the total result
+		const totalResult = gutterResults.nth(2);
+		const text = await totalResult.textContent();
+		expect(text).toContain('15');
 	});
 
 	test('should render syntax highlighting after evaluation', async ({ page }) => {

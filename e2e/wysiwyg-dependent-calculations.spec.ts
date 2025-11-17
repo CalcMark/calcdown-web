@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('WYSIWYG - Dependent Calculations', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/dependencies');
 
 		// Clear initial content
 		const textarea = page.locator('.raw-textarea');

@@ -15,6 +15,8 @@ export class CalcMarkWorkerManager {
 		}
 	>();
 	private initialized = false;
+	private initPromise: Promise<void> | null = null;
+	private initResolve: (() => void) | null = null;
 
 	constructor() {
 		if (typeof window !== 'undefined') {
@@ -23,6 +25,11 @@ export class CalcMarkWorkerManager {
 	}
 
 	private initWorker() {
+		// Create promise that resolves when worker is initialized
+		this.initPromise = new Promise((resolve) => {
+			this.initResolve = resolve;
+		});
+
 		// Use Vite's worker import syntax
 		this.worker = new Worker(new URL('../workers/calcmark.worker.ts', import.meta.url), {
 			type: 'module'
@@ -33,12 +40,14 @@ export class CalcMarkWorkerManager {
 
 			if (type === 'init-complete') {
 				this.initialized = true;
-				console.log('[WorkerManager] ✓ CalcMark worker initialized');
+				if (this.initResolve) {
+					this.initResolve();
+					this.initResolve = null;
+				}
 				return;
 			}
 
 			if (type === 'result' && id !== undefined) {
-				console.log('[WorkerManager] Received result for request', id);
 				const pending = this.pendingRequests.get(id);
 				if (pending) {
 					pending.resolve(results);
@@ -73,6 +82,25 @@ export class CalcMarkWorkerManager {
 
 		// Initialize worker
 		this.worker.postMessage({ type: 'init' });
+	}
+
+	/**
+	 * Wait for worker to finish initialization
+	 * Safe to call multiple times - returns immediately if already initialized
+	 */
+	async waitForInit(): Promise<void> {
+		// If running on server (no window), resolve immediately
+		if (typeof window === 'undefined') {
+			return;
+		}
+
+		if (this.initialized) {
+			return;
+		}
+		if (this.initPromise) {
+			return this.initPromise;
+		}
+		throw new Error('Worker not initialized - this should not happen');
 	}
 
 	/**
@@ -127,12 +155,15 @@ export class CalcMarkWorkerManager {
 	}
 }
 
-// Singleton instance
-let workerManager: CalcMarkWorkerManager | null = null;
-
-export function getWorkerManager(): CalcMarkWorkerManager {
-	if (!workerManager) {
-		workerManager = new CalcMarkWorkerManager();
-	}
-	return workerManager;
+/**
+ * Factory function to create a new worker manager instance
+ * Each Editor component should get its own dedicated worker
+ * This ensures:
+ * 1. Predictable initialization per component
+ * 2. Clean lifecycle management (worker terminated when component unmounts)
+ * 3. Support for multiple editors on same page
+ * 4. No state pollution across page navigations
+ */
+export function createWorkerManager(): CalcMarkWorkerManager {
+	return new CalcMarkWorkerManager();
 }

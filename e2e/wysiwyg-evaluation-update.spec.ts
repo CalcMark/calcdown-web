@@ -15,12 +15,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
 
 test.describe('WYSIWYG Editor - Evaluation Updates', () => {
 	test.beforeEach(async ({ page }) => {
-		// Capture console logs
-		page.on('console', (msg) => {
-			console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
-		});
-
-		await page.goto('/edit');
+		await page.goto('/test/dependencies');
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		await page.waitForTimeout(500);
 	});

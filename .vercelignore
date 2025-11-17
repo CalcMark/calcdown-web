@@ -1,0 +1,3 @@
+# Exclude test routes from production deployments
+# These routes are for E2E testing only and should not be deployed
+src/routes/test/

@@ -3,7 +3,7 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
 
 test.describe('WYSIWYG CalcMark Editor', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/edit');
+		await page.goto('/test/budget');
 		// Wait for editor to be visible
 		await page.waitForSelector('.wysiwyg-container', { state: 'visible' });
 		// Wait for initial evaluation to complete

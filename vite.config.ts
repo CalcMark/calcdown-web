@@ -3,6 +3,7 @@ import devtoolsJson from 'vite-plugin-devtools-json';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { compression } from 'vite-plugin-compression2';
 
 export default defineConfig({
 	plugins: [
@@ -11,6 +12,20 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide'
+		}),
+		// Brotli compression for WASM files (better compression)
+		compression({
+			algorithm: 'brotliCompress',
+			include: /\.(wasm)$/,
+			threshold: 1024,
+			deleteOriginalAssets: false
+		}),
+		// Gzip compression for WASM files (broader compatibility)
+		compression({
+			algorithm: 'gzip',
+			include: /\.(wasm)$/,
+			threshold: 1024,
+			deleteOriginalAssets: false
 		})
 	],
 	assetsInclude: ['**/*.wasm'],

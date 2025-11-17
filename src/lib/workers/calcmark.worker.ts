@@ -27,27 +27,21 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
 
 	try {
 		if (message.type === 'init') {
-			console.log('[Worker] Initializing CalcMark WASM...');
 			if (!initialized) {
 				await initCalcMark();
 				initialized = true;
-				console.log('[Worker] ✓ CalcMark WASM initialized');
 			}
 			self.postMessage({ type: 'init-complete' });
 			return;
 		}
 
 		if (message.type === 'evaluate') {
-			console.log('[Worker] Evaluating input, length:', message.input.length);
 			if (!initialized) {
-				console.log('[Worker] WASM not initialized, initializing now...');
 				await initCalcMark();
 				initialized = true;
-				console.log('[Worker] ✓ WASM initialized');
 			}
 
 			const results = await processCalcMark(message.input);
-			console.log('[Worker] ✓ Evaluation complete, sending results');
 
 			self.postMessage({
 				type: 'result',
@@ -56,7 +50,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
 			});
 		}
 	} catch (error) {
-		console.error('[Worker] Error:', error);
+		// Error will be sent to main thread via postMessage
 		self.postMessage({
 			type: 'error',
 			id: (message as EvaluateMessage).id,

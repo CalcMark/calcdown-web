@@ -1,5 +1,5 @@
 <script lang="ts">
-	import WysiwygCalcMarkEditor from '$lib/components/WysiwygCalcMarkEditor.svelte';
+	import Editor from '$lib/components/Editor.svelte';
 
 	const SAMPLE_DOCUMENT = `# Budget Calculator
 
@@ -21,13 +21,8 @@ leftover = total_income - total_expenses
 </script>
 
 <div class="page">
-	<header class="header">
-		<h1>CalcMark WYSIWYG Editor</h1>
-		<p>Textarea + overlay architecture (server-side processing)</p>
-	</header>
-
 	<main class="editor-container">
-		<WysiwygCalcMarkEditor initialText={SAMPLE_DOCUMENT} />
+		<Editor initialText={SAMPLE_DOCUMENT} />
 	</main>
 
 	<footer class="footer">
@@ -44,9 +39,9 @@ leftover = total_income - total_expenses
 
 	/* BULLETPROOF LAYOUT - Nothing can break this */
 	.page {
-		/* Fixed viewport height grid */
+		/* Fixed viewport height grid - navigation is now in root layout */
 		display: grid;
-		grid-template-rows: auto 1fr 10px;
+		grid-template-rows: 1fr 10px;
 		height: 100vh;
 		width: 100vw;
 		margin: 0;
@@ -55,18 +50,9 @@ leftover = total_income - total_expenses
 		overflow: hidden;
 	}
 
-	.header {
-		/* Row 1: Auto height based on content */
-		grid-row: 1;
-		padding: 12px 20px;
-		background: white;
-		border-bottom: 1px solid #e5e7eb;
-		text-align: center;
-	}
-
 	.editor-container {
-		/* Row 2: Takes all remaining space (1fr) */
-		grid-row: 2;
+		/* Row 1: Takes all remaining space (1fr) */
+		grid-row: 1;
 		/* CRITICAL: Constrain height to prevent overflow */
 		min-height: 0;
 		overflow: hidden;
@@ -76,8 +62,8 @@ leftover = total_income - total_expenses
 	}
 
 	.footer {
-		/* Row 3: Fixed 10px height */
-		grid-row: 3;
+		/* Row 2: Fixed 10px height */
+		grid-row: 2;
 		background: #dc2626;
 		border-top: 2px solid #991b1b;
 		display: flex;
@@ -92,18 +78,5 @@ leftover = total_income - total_expenses
 		color: white;
 		font-weight: 600;
 		white-space: nowrap;
-	}
-
-	h1 {
-		margin: 0 0 4px 0;
-		font-size: 18px;
-		font-weight: 600;
-		color: #1e293b;
-	}
-
-	.header p {
-		margin: 0;
-		font-size: 12px;
-		color: #64748b;
 	}
 </style>
