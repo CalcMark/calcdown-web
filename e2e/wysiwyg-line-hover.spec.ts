@@ -97,7 +97,7 @@ test.describe('WYSIWYG Line Hover Overlay', () => {
 		await expect(overlay).toBeVisible({ timeout: 2000 });
 	});
 
-	test('diagnostic count is correct for multiple errors', async ({ page }) => {
+	test('diagnostic count is correct for multiple errors', async () => {
 		// Skip this test for now - focus on basic functionality first
 		test.skip();
 	});

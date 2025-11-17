@@ -9,7 +9,6 @@
  -->
 <script lang="ts">
 	import type { LineContext } from '$lib/state/LineContext.svelte';
-	import type { Diagnostic } from '$lib/state/CalcMarkDocument';
 
 	interface Props {
 		lineContext: LineContext;

@@ -4,16 +4,30 @@
  */
 
 import { marked } from 'marked';
-import type { CalcMarkDocument } from '$lib/state/CalcMarkDocument';
 import { runeToUtf16Position } from '$lib/utils/unicode';
 import { getTokenClassName } from '$lib/utils/tokenClassification';
+
+interface Token {
+	type: string;
+	start: number;
+	end: number;
+}
+
+interface CalculationValue {
+	Value: number | string;
+	Symbol?: string;
+}
+
+interface CalculationResult {
+	Value: CalculationValue;
+}
 
 interface Line {
 	lineNumber: number;
 	rawContent: string;
 	classification: 'MARKDOWN' | 'CALCULATION' | 'BLANK' | null;
-	tokens?: any[];
-	calculationResult?: any;
+	tokens?: Token[];
+	calculationResult?: CalculationResult;
 }
 
 /**
@@ -31,7 +45,7 @@ export function escapeHtml(text: string): string {
 /**
  * Format a calculation result value
  */
-export function formatValue(value: any): string {
+export function formatValue(value: CalculationValue): string {
 	if (typeof value.Value === 'number') {
 		const num = value.Value;
 
@@ -73,7 +87,7 @@ export function renderMarkdownLine(content: string): string {
  * Render a calculation line with syntax highlighting
  * Preserves ALL whitespace and characters
  */
-export function renderCalculationLine(line: Line, doc: CalcMarkDocument): string {
+export function renderCalculationLine(line: Line): string {
 	const tokens = line.tokens || [];
 	const result = line.calculationResult;
 	const lineText = line.rawContent;
@@ -129,7 +143,7 @@ export function renderCalculationLine(line: Line, doc: CalcMarkDocument): string
  * Render a line based on its classification
  * Pure function - always returns the same output for the same input
  */
-export function renderLine(line: Line, doc: CalcMarkDocument): string {
+export function renderLine(line: Line): string {
 	if (!line.classification) {
 		// No classification yet - show raw (optimistic UI)
 		return escapeHtml(line.rawContent);
@@ -138,7 +152,7 @@ export function renderLine(line: Line, doc: CalcMarkDocument): string {
 	if (line.classification === 'MARKDOWN') {
 		return renderMarkdownLine(line.rawContent);
 	} else if (line.classification === 'CALCULATION') {
-		return renderCalculationLine(line, doc);
+		return renderCalculationLine(line);
 	}
 
 	return escapeHtml(line.rawContent);

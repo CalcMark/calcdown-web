@@ -28,13 +28,13 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		// Find the line with "bonus = $500" in the overlay
 		const lines = page.locator('.rendered-overlay .line');
 		let bonusLine = null;
-		let bonusLineIndex = -1;
+		let _bonusLineIndex = -1;
 
 		for (let i = 0; i < (await lines.count()); i++) {
 			const text = await lines.nth(i).textContent();
 			if (text?.includes('bonus') && text?.includes('500')) {
 				bonusLine = lines.nth(i);
-				bonusLineIndex = i;
+				_bonusLineIndex = i;
 				break;
 			}
 		}
@@ -62,12 +62,12 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 
 		// Calculate expected cursor position (should be in "bonus = $500")
 		// We expect the cursor to be somewhere in the "500" part
-		const bonusLineText = lines_text[bonusLineIndex];
+		const bonusLineText = lines_text[_bonusLineIndex];
 		const bonusIndex = bonusLineText.indexOf('500');
 
 		// The cursor should be somewhere within the "500" string
 		let positionInDocument = 0;
-		for (let i = 0; i < bonusLineIndex; i++) {
+		for (let i = 0; i < _bonusLineIndex; i++) {
 			positionInDocument += lines_text[i].length + 1; // +1 for newline
 		}
 		const expectedMin = positionInDocument + bonusIndex;
@@ -85,13 +85,11 @@ test.describe('WYSIWYG Editor - Cursor Precision', () => {
 		// Find line with "monthly_salary = $5000"
 		const lines = page.locator('.rendered-overlay .line');
 		let salaryLine = null;
-		let lineIndex = -1;
 
 		for (let i = 0; i < (await lines.count()); i++) {
 			const text = await lines.nth(i).textContent();
 			if (text?.includes('monthly_salary') && text?.includes('5000')) {
 				salaryLine = lines.nth(i);
-				lineIndex = i;
 				break;
 			}
 		}

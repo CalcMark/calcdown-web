@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 
-	function startEditing() {
-		goto('/edit');
+	async function startEditing() {
+		await invalidateAll();
+		// Simple navigation to /edit - no data loading needed, disable resolve warning
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		await goto('/edit');
 	}
 </script>
 

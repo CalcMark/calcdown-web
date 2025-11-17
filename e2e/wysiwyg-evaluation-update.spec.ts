@@ -90,7 +90,7 @@ test.describe('WYSIWYG Editor - Evaluation Updates', () => {
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1000);
 
 		// Verify initial result
-		let resultY = await page.locator('.gutter-result').nth(1).textContent();
+		const resultY = await page.locator('.gutter-result').nth(1).textContent();
 		console.log('Initial y result:', resultY);
 		expect(resultY).toContain('150');
 

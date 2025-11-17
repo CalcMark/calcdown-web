@@ -3,8 +3,6 @@
  * No DOM manipulation, just calculations
  */
 
-import type { CalcMarkDocument } from '$lib/state/CalcMarkDocument';
-
 export interface CursorPosition {
 	x: number;
 	y: number;
@@ -61,8 +59,7 @@ function getFontSize(element: Element): number {
 export function calculateCursorPosition(
 	lineElement: Element,
 	offset: number,
-	overlayElement: HTMLElement,
-	textareaElement?: HTMLElement
+	overlayElement: HTMLElement
 ): CursorPosition | null {
 	const range = document.createRange();
 	const textNode = findTextNodeAtOffset(lineElement, offset);

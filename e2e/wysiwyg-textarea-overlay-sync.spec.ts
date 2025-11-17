@@ -26,9 +26,6 @@ test.describe('WYSIWYG Editor - Textarea/Overlay Sync', () => {
 		// Wait for typing to finish and overlay to update
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 500);
 
-		// Get textarea value
-		const textareaValue = await textarea.inputValue();
-
 		// Get overlay text (combining all lines)
 		const overlayText = await overlay.evaluate((el) => {
 			const lines = el.querySelectorAll('.line');
@@ -40,7 +37,6 @@ test.describe('WYSIWYG Editor - Textarea/Overlay Sync', () => {
 
 		// Extract just the raw text from overlay (without syntax highlighting)
 		const overlayRawText = overlayText.replace(/\s+/g, ' ').trim();
-		const textareaRawText = textareaValue.replace(/\s+/g, ' ').trim();
 
 		expect(overlayRawText).toContain('result');
 		expect(overlayRawText).toContain('100');

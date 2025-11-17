@@ -136,9 +136,6 @@ test.describe('WYSIWYG Editor - Text Rendering Accuracy', () => {
 
 		await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1000);
 
-		// Get textarea content
-		const textareaValue = await textarea.inputValue();
-
 		// Get overlay content (will include results, so we check substrings)
 		const overlayText = await page.locator('.rendered-overlay').textContent();
 
@@ -206,9 +203,6 @@ test.describe('WYSIWYG Editor - Text Rendering Accuracy', () => {
 			await page.waitForTimeout(USER_INPUT_DEBOUNCE_MS + 1000);
 
 			const overlayText = await page.locator('.rendered-overlay').textContent();
-
-			// Count characters
-			const expectedLength = identifier.length;
 
 			// The identifier should appear in full
 			expect(overlayText).toContain(identifier);

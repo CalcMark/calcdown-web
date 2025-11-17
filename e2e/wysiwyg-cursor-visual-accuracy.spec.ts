@@ -228,9 +228,9 @@ test.describe('WYSIWYG Editor - Visual Cursor Accuracy', () => {
 		const cursorBox = await cursorIndicator.boundingBox();
 		expect(cursorBox).not.toBeNull();
 
-		// Get the overlay line element to measure character widths
+		// Get the overlay to verify it exists
 		const overlay = page.locator('.rendered-overlay');
-		const lineElement = overlay.locator('[data-line="0"]');
+		await expect(overlay).toBeVisible();
 
 		// Type a character
 		await textarea.press('9');

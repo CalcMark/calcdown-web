@@ -8,10 +8,6 @@
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const GITHUB_REPO = 'CalcMark/go-calcmark';
 const WASM_DIR = path.join(process.cwd(), 'src', 'lib', 'wasm');
@@ -102,7 +98,7 @@ function getDownloadedVersion() {
 		if (fs.existsSync(VERSION_LOCK_FILE)) {
 			return fs.readFileSync(VERSION_LOCK_FILE, 'utf-8').trim();
 		}
-	} catch (error) {
+	} catch {
 		// Ignore errors, treat as no version
 	}
 	return null;

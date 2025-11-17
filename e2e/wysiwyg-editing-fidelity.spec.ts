@@ -10,15 +10,6 @@ import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
  */
 
 /**
- * Helper to generate random printable ASCII characters
- */
-function randomChar(): string {
-	const chars =
-		'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,;:!?-_=+*/$#@()[]{}<>';
-	return chars[Math.floor(Math.random() * chars.length)];
-}
-
-/**
  * Helper to generate random delay simulating human typing
  */
 function randomDelay(min = 30, max = 150): number {
@@ -85,7 +76,7 @@ test.describe('WYSIWYG Editor - Editing Fidelity (CRITICAL)', () => {
 		await page.waitForTimeout(50);
 
 		// Check value
-		let textValue = await textarea.inputValue();
+		const textValue = await textarea.inputValue();
 		expect(textValue).toBe('result = 100.5 + 200');
 
 		// Verify cursor position

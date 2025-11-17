@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
 
 /**
  * Tests for line alignment between textarea and overlay
@@ -32,9 +31,6 @@ test.describe('WYSIWYG Editor - Line Alignment', () => {
 	});
 
 	test('textarea and overlay should have identical padding', async ({ page }) => {
-		const textarea = page.locator('.raw-textarea');
-		const overlay = page.locator('.rendered-overlay');
-
 		const styles = await page.evaluate(() => {
 			const ta = document.querySelector('.raw-textarea');
 			const ov = document.querySelector('.rendered-overlay');

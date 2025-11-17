@@ -502,6 +502,7 @@
 					onmouseleave={() => lineContext.setHoveredLine(null)}
 				>
 					<!-- renderLine() returns sanitized HTML with syntax highlighting - all content is escaped via escapeHtml() -->
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -- Content is sanitized via escapeHtml() in wysiwygRenderer.ts before rendering -->
 					{@html renderLine(line, doc)}
 				</div>
 			{/each}

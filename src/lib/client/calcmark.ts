@@ -6,7 +6,7 @@
  * Web Workers prevent blocking the main thread during evaluation.
  */
 
-import type { Diagnostic, Token, EvaluationResult } from '$lib/stores/blockStore.svelte';
+import type { Diagnostic, Token, EvaluationResult } from '$lib/state/CalcMarkDocument';
 
 // Import WASM using Vite's special imports
 import wasmExecCode from '../wasm/wasm_exec.js?raw';

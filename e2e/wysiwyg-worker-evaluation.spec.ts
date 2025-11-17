@@ -4,6 +4,11 @@ import { test, expect } from '@playwright/test';
  * Test that Web Worker successfully loads and evaluates CalcMark
  */
 
+interface TestPage {
+	__testLogs?: string[];
+	__testErrors?: string[];
+}
+
 test.describe('WYSIWYG Web Worker Evaluation', () => {
 	test.beforeEach(async ({ page }) => {
 		// Collect console logs and errors
@@ -23,8 +28,8 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		});
 
 		// Store logs for inspection
-		(page as any).__testLogs = logs;
-		(page as any).__testErrors = errors;
+		(page as TestPage).__testLogs = logs;
+		(page as TestPage).__testErrors = errors;
 
 		await page.goto('/edit');
 	});
@@ -33,8 +38,9 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		// Wait for worker initialization
 		await page.waitForTimeout(1000);
 
-		const errors = (page as any).__testErrors;
-		const logs = (page as any).__testLogs;
+		const testPage = page as TestPage;
+		const errors = testPage.__testErrors || [];
+		const logs = testPage.__testLogs || [];
 
 		// Check for worker errors
 		const workerErrors = errors.filter(
@@ -61,7 +67,8 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		// Wait for evaluation
 		await page.waitForTimeout(1000);
 
-		const logs = (page as any).__testLogs;
+		const testPage = page as TestPage;
+		const logs = testPage.__testLogs || [];
 
 		// Should see worker initialization logs
 		const hasWorkerInit = logs.some(
@@ -84,7 +91,8 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		// Wait for evaluation (debounce + processing)
 		await page.waitForTimeout(1000);
 
-		const logs = (page as any).__testLogs;
+		const testPage = page as TestPage;
+		const logs = testPage.__testLogs || [];
 
 		// Should see evaluation complete log
 		const hasEvaluationComplete = logs.some(
@@ -170,7 +178,8 @@ test.describe('WYSIWYG Web Worker Evaluation', () => {
 		// Wait for evaluation
 		await page.waitForTimeout(1000);
 
-		const errors = (page as any).__testErrors;
+		const testPage = page as TestPage;
+		const errors = testPage.__testErrors || [];
 
 		// Should not have fatal errors (worker should handle gracefully)
 		const fatalErrors = errors.filter(

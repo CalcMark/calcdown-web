@@ -10,7 +10,7 @@
  * Use unicode.ts utilities to convert between them.
  */
 
-import { runeToUtf16Position, utf16ToRunePosition } from '$lib/utils/unicode';
+import { runeToUtf16Position } from '$lib/utils/unicode';
 
 export interface Token {
 	type: string;

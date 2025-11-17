@@ -3,15 +3,13 @@
  * Manages Web Worker lifecycle and provides async API for editor
  */
 
-type EvaluationResult = any; // Import from your types
-
 export class CalcMarkWorkerManager {
 	private worker: Worker | null = null;
 	private nextRequestId = 0;
 	private pendingRequests = new Map<
 		number,
 		{
-			resolve: (result: any) => void;
+			resolve: (result: unknown) => void;
 			reject: (error: Error) => void;
 			timestamp: number;
 		}
@@ -81,7 +79,7 @@ export class CalcMarkWorkerManager {
 	 * Evaluate CalcMark input in background worker
 	 * Returns a promise that resolves with syntax highlighting data
 	 */
-	async evaluate(input: string, offset: number = 0): Promise<any> {
+	async evaluate(input: string, offset: number = 0): Promise<unknown> {
 		if (!this.worker) {
 			throw new Error('Worker not initialized');
 		}

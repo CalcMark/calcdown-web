@@ -211,7 +211,7 @@ test.describe('WYSIWYG Editor - Delete/Backspace Behavior', () => {
 		await textarea.press('Backspace');
 		await page.waitForTimeout(50);
 
-		let newText = await textarea.inputValue();
+		const newText = await textarea.inputValue();
 
 		// Document actual behavior
 		console.log('After Backspace:', newText);

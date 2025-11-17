@@ -52,15 +52,16 @@ test.describe('WYSIWYG - No Flashing on Unchanged Lines', () => {
 		await page.waitForTimeout(300);
 
 		// Track animation/transition events on line 2
-		let line2AnimationCount = 0;
 		const line2 = page.locator('.rendered-overlay .line[data-line="1"]');
 
 		await line2.evaluate((el) => {
 			el.addEventListener('animationstart', () => {
-				(window as any).line2AnimationCount = ((window as any).line2AnimationCount || 0) + 1;
+				(window as { line2AnimationCount?: number }).line2AnimationCount =
+					((window as { line2AnimationCount?: number }).line2AnimationCount || 0) + 1;
 			});
 			el.addEventListener('transitionstart', () => {
-				(window as any).line2AnimationCount = ((window as any).line2AnimationCount || 0) + 1;
+				(window as { line2AnimationCount?: number }).line2AnimationCount =
+					((window as { line2AnimationCount?: number }).line2AnimationCount || 0) + 1;
 			});
 		});
 
@@ -75,7 +76,9 @@ test.describe('WYSIWYG - No Flashing on Unchanged Lines', () => {
 		await page.waitForTimeout(300);
 
 		// Check that line 2 had no animations/transitions
-		line2AnimationCount = await page.evaluate(() => (window as any).line2AnimationCount || 0);
+		const line2AnimationCount = await page.evaluate(
+			() => (window as { line2AnimationCount?: number }).line2AnimationCount || 0
+		);
 		expect(line2AnimationCount).toBe(0);
 	});
 

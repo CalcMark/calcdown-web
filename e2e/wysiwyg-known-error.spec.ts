@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { USER_INPUT_DEBOUNCE_MS } from '../src/lib/constants';
 
 /**
  * Test with deliberate error at known line number

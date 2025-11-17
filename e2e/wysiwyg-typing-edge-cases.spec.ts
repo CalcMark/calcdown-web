@@ -42,7 +42,6 @@ test.describe('WYSIWYG Editor - Typing Edge Cases', () => {
 		}
 
 		// Get initial cursor position
-		const initialPos = await textarea.evaluate((el: HTMLTextAreaElement) => el.selectionStart);
 		const initialLine = await textarea.evaluate((el: HTMLTextAreaElement) => {
 			const text = el.value;
 			const pos = el.selectionStart;

@@ -119,12 +119,11 @@ test.describe('WYSIWYG - Dependent Calculations', () => {
 		expect(initialResult?.trim()).toBe('150');
 
 		// Track if the gutter line gets removed/re-added (which would cause flickering)
-		let gutterLineDetached = false;
 		await resultLine.evaluate((el) => {
 			const observer = new MutationObserver((mutations) => {
 				for (const mutation of mutations) {
 					mutation.removedNodes.forEach(() => {
-						(window as any).gutterLineDetached = true;
+						(window as { gutterLineDetached?: boolean }).gutterLineDetached = true;
 					});
 				}
 			});
@@ -140,7 +139,9 @@ test.describe('WYSIWYG - Dependent Calculations', () => {
 		expect(newResult?.trim()).toBe('250');
 
 		// Gutter line should not have been detached (no flickering)
-		gutterLineDetached = await page.evaluate(() => (window as any).gutterLineDetached || false);
+		const gutterLineDetached = await page.evaluate(
+			() => (window as { gutterLineDetached?: boolean }).gutterLineDetached || false
+		);
 		expect(gutterLineDetached).toBe(false);
 	});
 });
